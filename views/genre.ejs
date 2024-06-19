@@ -1,4 +1,3 @@
-<!-- genre.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,33 +28,127 @@
   </nav>
 
   <!-- Main Content -->
-  <div class="container">
-    <h2 class="mt-4">Book Questions - <%= genre %></h2>
-    <hr>
-    <div id="questions-container">
-      <% if (questions && questions.length > 0) { %>
-        <% questions.forEach(question => { %>
-          <div class="card mb-3">
-            <div class="card-body">
-              <h5 class="card-title">Question</h5>
-              <p class="card-text"><%= question.question %></p>
-              <% if (question.answer) { %>
-                <h5 class="card-title">Answer</h5>
-                <p class="card-text"><%= question.answer %></p>
-              <% } else { %>
-                <p class="card-text">No answer provided yet.</p>
-              <% } %>
+  <div class="main-content">
+    <div class="container">
+      <h2 class="mt-4">Book Questions - <%= genre %></h2>
+      <hr>
+      <div id="questions-container">
+        <% if (questions && questions.length > 0) { %>
+          <% questions.forEach((question, index) => { %>
+            <div class="card mb-3">
+              <div class="card-body">
+                <h5 class="card-title">Question <%= index + 1 %></h5>
+                <p class="card-text">Question: <%= question.question %></p>
+                <% if (question.answer) { %>
+                  <p class="card-text">Answer: <%= question.answer %></p>
+                <% } %>
+                <button class="btn btn-sm btn-primary answer-btn"
+                        data-toggle="modal"
+                        data-target="#answerModal"
+                        data-question-id="<%= question.id %>"
+                        data-question-text="<%= question.question %>">
+                  Answer
+                </button>
+              </div>
             </div>
+          <% }); %>
+        <% } else { %>
+          <p>No questions found for <%= genre %> genre.</p>
+        <% } %>
+      </div>
+      <button class="btn btn-sm btn-primary mt-2 add-question-btn" data-toggle="modal" data-target="#addQuestionModal" data-genre="<%= genre %>">Add Question</button>
+    </div>
+  </div>
+
+  <!-- Modal for adding question -->
+  <div class="modal fade" id="addQuestionModal" tabindex="-1" role="dialog" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addQuestionModalLabel">Add Question - <%= genre %></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="addQuestionForm" action="/submit-question" method="POST">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="question">Question:</label>
+              <input type="text" class="form-control" id="question" name="question" required>
+            </div>
+            <input type="hidden" name="genre" value="<%= genre %>">
           </div>
-        <% }); %>
-      <% } else { %>
-        <p>No questions found for <%= genre %> genre.</p>
-      <% } %>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit Question</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for answering questions -->
+  <div class="modal fade" id="answerModal" tabindex="-1" role="dialog" aria-labelledby="answerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="answerModalLabel">Answer Question</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="answerForm">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="answer">Answer:</label>
+              <textarea class="form-control" id="answer" name="answer" rows="3" required></textarea>
+            </div>
+            <input type="hidden" name="questionId" id="questionId">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit Answer</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
   <!-- Bootstrap JS (Optional, for Bootstrap components like dropdowns, modals, etc.) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      // Handle modal show event to update modal title and question ID for answering questions
+      $('#answerModal').on('show.bs.modal', function(event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var questionId = button.data('question-id'); // Extract question ID from data-* attributes
+        var questionText = button.data('question-text'); // Extract question text from data-* attributes
+        $('#answerModalLabel').text('Answer Question - ' + questionText); // Update modal title with the question text
+        $('#questionId').val(questionId); // Set the hidden input value for question ID in the modal form
+      });
+
+      // Handle form submission for answering a question
+      $('#answerForm').on('submit', function(event) {
+        event.preventDefault();
+        var formData = $(this).serialize();
+
+        $.ajax({
+          url: '/submit-answer',
+          method: 'POST',
+          data: formData,
+          success: function(response) {
+            alert(response.message); // Show success message
+            $('#answerModal').modal('hide'); // Hide the modal after submission
+            location.reload(); // Reload the page to see the updated answer
+          },
+          error: function(err) {
+            console.error('Error submitting answer:', err);
+            alert('Error submitting answer. Please try again.'); // Show error message
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

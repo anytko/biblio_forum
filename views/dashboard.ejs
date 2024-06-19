@@ -9,7 +9,6 @@
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <!-- Custom CSS -->
   <style>
-    /* Custom styles */
     body {
       padding-top: 60px; /* Adjust based on your header height */
     }
@@ -80,32 +79,32 @@
   <!-- Main Content -->
   <div class="main-content">
     <div class="container-fluid">
-      <!-- Content goes here -->
       <% genres.forEach(genre => { %>
         <section id="<%= genre %>" class="genre-section">
           <h2 class="mt-4">Book Questions - <%= genre %></h2>
           <hr>
           <div id="questions-container-<%= genre %>">
-            <!-- Questions for <%= genre %> will be dynamically loaded here -->
             <% questions.forEach((q, index) => { %>
               <% if (q.genre === genre) { %>
                 <div class="card mb-3">
                   <div class="card-body">
                     <h5 class="card-title">Question <%= index + 1 %></h5>
                     <p class="card-text">Question: <%= q.question %></p>
-                    <p class="card-text">Answer: <%= q.answer ? q.answer : 'No answer provided yet.' %></p>
-                    <!-- Answer form -->
-                    <form class="answer-form" id="answerForm_<%= q.id %>" style="display: none;">
-                      <div class="form-group">
-                        <label for="answer_<%= q.id %>">Your Answer:</label>
-                        <textarea class="form-control" id="answer_<%= q.id %>" name="answer" rows="3" required></textarea>
-                        <input type="hidden" name="questionId" value="<%= q.id %>">
-                      </div>
-                      <button type="submit" class="btn btn-primary">Submit Answer</button>
-                      <button type="button" class="btn btn-secondary cancel-answer-btn">Cancel</button>
-                    </form>
-                    <!-- Answer button -->
-                    <button class="btn btn-sm btn-info mt-2 answer-btn" data-question-id="<%= q.id %>">Answer</button>
+                    <% if (q.answers && q.answers.length > 0) { %>
+                      <h6 class="card-subtitle mb-2 text-muted">Answers:</h6>
+                      <% q.answers.forEach((answer, idx) => { %>
+                        <p class="card-text"><%= idx + 1 %>. <%= answer %></p>
+                      <% }); %>
+                    <% } else { %>
+                      <p class="card-text">No answers yet.</p>
+                    <% } %>
+                    <button class="btn btn-sm btn-primary answer-btn"
+                            data-toggle="modal"
+                            data-target="#answerModal"
+                            data-question-id="<%= q.id %>"
+                            data-question-text="<%= q.question %>">
+                      Answer
+                    </button>
                   </div>
                 </div>
               <% } %>
@@ -144,101 +143,84 @@
     </div>
   </div>
 
+  <!-- Modal for answering questions -->
+  <div class="modal fade" id="answerModal" tabindex="-1" role="dialog" aria-labelledby="answerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="answerModalLabel">Answer Question</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="answerForm">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="answer">Answer:</label>
+              <textarea class="form-control" id="answer" name="answer" rows="3" required></textarea>
+            </div>
+            <input type="hidden" name="questionId" id="questionId">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Submit Answer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Bootstrap JS (Optional, for Bootstrap components like dropdowns, modals, etc.) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-<!-- Script for handling genre link click and AJAX -->
-<script>
-  $(document).ready(function() {
-    // Function to fetch questions for a genre via AJAX
-    function fetchQuestions(genre) {
-      $.ajax({
-        url: '/genre/' + encodeURIComponent(genre),
-        method: 'GET',
-        success: function(data) {
-          $('#questions-container-' + genre).html(data); // Replace questions dynamically
-          $('#modalGenre').text(genre); // Update modal genre title
-          $('#questionGenre').val(genre); // Set the hidden input value for genre in the modal form
-        },
-        error: function(err) {
-          console.error('Error fetching questions:', err);
-        }
+  <script>
+    $(document).ready(function() {
+      // Handle modal show event to update modal title and question ID for answering questions
+      $('#answerModal').on('show.bs.modal', function(event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var questionId = button.data('question-id'); // Extract question ID from data-* attributes
+        var questionText = button.data('question-text'); // Extract question text from data-* attributes
+        $('#answerModalLabel').text('Answer Question - ' + questionText); // Update modal title with the question text
+        $('#questionId').val(questionId); // Set the hidden input value for question ID in the modal form
       });
-    }
-
-    // Click event handler for genre links
-    $('.genre-link').on('click', function(event) {
-      event.preventDefault();
-      var genre = $(this).data('genre');
-      $('.genre-section').removeClass('active'); // Hide all genre sections
-      $('#' + genre).addClass('active'); // Show the selected genre section
-      fetchQuestions(genre); // Fetch questions for the selected genre via AJAX
-    });
-
-    // Modal show event handler to update modal title and genre
-    $('#addQuestionModal').on('show.bs.modal', function(event) {
-      var button = $(event.relatedTarget); // Button that triggered the modal
-      var genre = button.data('genre'); // Extract genre from data-* attributes
-      $('#modalGenre').text(genre); // Update modal title with the selected genre
-      $('#questionGenre').val(genre); // Set the hidden input value for genre in the modal form
-    });
-
-    // Form submission handler for adding a question
-    $('#addQuestionForm').on('submit', function(event) {
-      event.preventDefault();
-      var formData = $(this).serialize();
-
-      $.ajax({
-        url: '/submit-question',
-        method: 'POST',
-        data: formData,
-        success: function(response) {
-          alert(response); // Show success message
-          $('#addQuestionModal').modal('hide'); // Hide the modal after submission
-          var genre = $('#questionGenre').val();
-          fetchQuestions(genre); // Refresh questions after adding a new one
-        },
-        error: function(err) {
-          console.error('Error submitting question:', err);
-          alert('Error submitting question. Please try again.'); // Show error message
-        }
+  
+      // Handle form submission for answering a question
+      $('#answerForm').on('submit', function(event) {
+        event.preventDefault();
+        var formData = $(this).serialize();
+  
+        $.ajax({
+          url: '/submit-answer',
+          method: 'POST',
+          data: formData,
+          success: function(response) {
+            alert(response.message); // Show success message
+            $('#answerModal').modal('hide'); // Hide the modal after submission
+            location.reload(); // Reload the page to see the updated answer
+          },
+          error: function(err) {
+            console.error('Error submitting answer:', err);
+            alert('Error submitting answer. Please try again.'); // Show error message
+          }
+        });
+      });
+  
+      // Handle genre link click event to show the corresponding genre section
+      $('.genre-link').on('click', function(event) {
+        event.preventDefault();
+        var genre = $(this).data('genre');
+        $('.genre-section').removeClass('active');
+        $('#' + genre).addClass('active');
+      });
+  
+      // Handle add question button click event to set the genre in the modal form
+      $('.add-question-btn').on('click', function() {
+        var genre = $(this).data('genre');
+        $('#modalGenre').text(genre);
+        $('#questionGenre').val(genre);
       });
     });
-
-    // Click event handler for answer button
-    $(document).on('click', '.answer-btn', function(event) {
-      event.preventDefault();
-      var questionId = $(this).data('question-id');
-      $('#answerForm_' + questionId).show(); // Show the answer form for this question
-    });
-
-    // Click event handler for cancel answer button
-    $(document).on('click', '.cancel-answer-btn', function(event) {
-      event.preventDefault();
-      $(this).closest('form').hide(); // Hide the answer form
-    });
-
-    // Form submission handler for answering a question
-    $(document).on('submit', '.answer-form', function(event) {
-      event.preventDefault();
-      var formData = $(this).serialize();
-
-      $.ajax({
-        url: '/submit-answer',
-        method: 'POST',
-        data: formData,
-        success: function(response) {
-          alert(response); // Show success message
-          var genre = $('#questionGenre').val();
-          fetchQuestions(genre); // Refresh questions after submitting an answer
-        },
-        error: function(err) {
-          console.error('Error submitting answer:', err);
-          alert('Error submitting answer. Please try again.'); // Show error message
-        }
-      });
-    });
-  });
-</script>
-
+  </script>
+</body>
+</html>
