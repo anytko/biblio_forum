@@ -1,0 +1,61 @@
+<!-- genre.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= genre %> Questions - BiblioForum</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="#">BiblioForum - <%= genre %> Questions</a>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <span class="navbar-text">
+              Welcome, <%= username %>
+            </span>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/logout">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h2 class="mt-4">Book Questions - <%= genre %></h2>
+    <hr>
+    <div id="questions-container">
+      <% if (questions && questions.length > 0) { %>
+        <% questions.forEach(question => { %>
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Question</h5>
+              <p class="card-text"><%= question.question %></p>
+              <% if (question.answer) { %>
+                <h5 class="card-title">Answer</h5>
+                <p class="card-text"><%= question.answer %></p>
+              <% } else { %>
+                <p class="card-text">No answer provided yet.</p>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <p>No questions found for <%= genre %> genre.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS (Optional, for Bootstrap components like dropdowns, modals, etc.) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
