@@ -104,12 +104,12 @@
             <button class="btn btn-danger btn-sm delete-btn" data-question-id="<%= q.id %>">Delete</button>
           </div>
           <div class="card-body">
-            <p class="card-text">Question: <%= q.question %></p>
+            <p class="card-text"><strong>Question:</strong> <%= q.question %> <em>(Asked by: <%= q.username %>)</em></p>
             <div class="answers" id="answers-<%= q.id %>">
               <% if (q.answers && q.answers.length > 0) { %>
               <h6 class="card-subtitle mb-2 text-muted">Answers:</h6>
               <% q.answers.forEach((answer, idx) => { %>
-              <p class="card-text"><%= idx + 1 %>. <%= answer %></p>
+              <p class="card-text"><%= idx + 1 %>. <strong><%= answer.username %>:</strong> <%= answer.text %></p>
               <% }); %>
               <% } else { %>
               <p class="card-text">No answers yet.</p>
@@ -205,45 +205,45 @@
     
       // Function to update main content with fetched data by genre
       function updateGenre(genre) {
-        $.ajax({
-          url: '/dashboard/genres/' + genre,
-          method: 'GET',
-          success: function(data) {
-            $('#questions-container-' + genre).html('');
-            data.forEach(function(question, index) {
-              var answersHTML = renderAnswers(question.answers);
-              var noAnswersMessage = (answersHTML === '') ? '<p class="card-text no-answers-message">No answers yet.</p>' : '';
-    
-              var questionCard = '<div class="card mb-3" id="question-card-' + question.id + '">' +
-                '<div class="card-header">' +
-                '<h5 class="card-title">Question ' + (index + 1) + '</h5>' +
-                '<button class="btn btn-danger btn-sm delete-btn" data-question-id="' + question.id + '">Delete</button>' +
-                '</div>' +
-                '<div class="card-body">' +
-                '<p class="card-text">Question: ' + question.question + '</p>' +
-                '<div class="answers" id="answers-container-' + question.id + '">' +
-                answersHTML +
-                noAnswersMessage +
-                '</div>' +
-                '<button class="btn btn-sm btn-primary answer-btn" ' +
-                'data-toggle="modal" ' +
-                'data-target="#answerModal" ' +
-                'data-question-id="' + question.id + '" ' +
-                'data-question-text="' + question.question + '" ' +
-                'data-genre="' + question.genre + '">Answer</button>' +
-                '</div>' +
-                '</div>';
-              $('#questions-container-' + genre).append(questionCard);
-            });
-            $('.genre-section').removeClass('active'); // Remove active class from all genre sections
-            $('#' + genre).addClass('active'); // Add active class to the selected genre section
-          },
-          error: function(err) {
-            console.error('Error fetching questions by genre:', err);
-            alert('Error fetching questions by genre. Please try again.');
-          }
-        });
-      }
+  $.ajax({
+    url: '/dashboard/genres/' + genre,
+    method: 'GET',
+    success: function(data) {
+      $('#questions-container-' + genre).html('');
+      data.forEach(function(question, index) {
+        var answersHTML = renderAnswers(question.answers);
+        var noAnswersMessage = (answersHTML === '') ? '<p class="card-text no-answers-message">No answers yet.</p>' : '';
+
+        var questionCard = '<div class="card mb-3" id="question-card-' + question.id + '">' +
+          '<div class="card-header">' +
+          '<h5 class="card-title">Question ' + (index + 1) + '</h5>' +
+          '<button class="btn btn-danger btn-sm delete-btn" data-question-id="' + question.id + '">Delete</button>' +
+          '</div>' +
+          '<div class="card-body">' +
+          '<p class="card-text">Question: ' + question.question + ' <em>(Asked by: ' + question.username + ')</em></p>' +
+          '<div class="answers" id="answers-container-' + question.id + '">' +
+          answersHTML +
+          noAnswersMessage +
+          '</div>' +
+          '<button class="btn btn-sm btn-primary answer-btn" ' +
+          'data-toggle="modal" ' +
+          'data-target="#answerModal" ' +
+          'data-question-id="' + question.id + '" ' +
+          'data-question-text="' + question.question + '" ' +
+          'data-genre="' + question.genre + '">Answer</button>' +
+          '</div>' +
+          '</div>';
+        $('#questions-container-' + genre).append(questionCard);
+      });
+      $('.genre-section').removeClass('active'); // Remove active class from all genre sections
+      $('#' + genre).addClass('active'); // Add active class to the selected genre section
+    },
+    error: function(err) {
+      console.error('Error fetching questions by genre:', err);
+      alert('Error fetching questions by genre. Please try again.');
+    }
+  });
+}
     
       // Handle delete button click event
       $(document).on('click', '.delete-btn', function(event) {
@@ -304,15 +304,15 @@
       }
     
       function renderAnswers(answers) {
-        if (answers && answers.length > 0) {
-          var answersHTML = '<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>';
-          answers.forEach(function(answer, idx) {
-            answersHTML += '<p class="card-text">' + (idx + 1) + '. ' + answer + '</p>';
-          });
-          return answersHTML;
-        }
-        return ''; // Return empty string if no answers
-      }
+  if (answers && answers.length > 0) {
+    var answersHTML = '<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>';
+    answers.forEach(function(answer, idx) {
+      answersHTML += '<p class="card-text">' + (idx + 1) + '. <strong>' + answer.username + ':</strong> ' + answer.text + '</p>';
+    });
+    return answersHTML;
+  }
+  return ''; // Return empty string if no answers
+}
     
       // Handle modal show event to update modal title and question ID for answering questions
       $('#answerModal').on('show.bs.modal', function(event) {

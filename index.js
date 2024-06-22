@@ -112,13 +112,15 @@ const checkAuth = (req, res, next) => {
   };
 
 // Route to display the dashboard (protected)
-// Route to display the dashboard (protected)
 app.get('/dashboard/:genre?', checkAuth, (req, res) => {
     const selectedGenre = req.params.genre || null;
     let query = `
-      SELECT q.id, q.genre, q.question, a.answer
+      SELECT q.id, q.genre, q.question, q.user_id AS question_user_id, qu.username AS question_username,
+             a.id AS answer_id, a.answer, a.user_id AS answer_user_id, au.username AS answer_username
       FROM questions q
       LEFT JOIN answers a ON q.id = a.question_id
+      LEFT JOIN users qu ON q.user_id = qu.id
+      LEFT JOIN users au ON a.user_id = au.id
     `;
   
     const params = [];
@@ -143,11 +145,18 @@ app.get('/dashboard/:genre?', checkAuth, (req, res) => {
             id: row.id,
             genre: row.genre,
             question: row.question,
+            user_id: row.question_user_id,
+            username: row.question_username,
             answers: []
           };
         }
         if (row.answer) {
-          questionMap[row.id].answers.push(row.answer);
+          questionMap[row.id].answers.push({
+            id: row.answer_id,
+            text: row.answer,
+            user_id: row.answer_user_id,
+            username: row.answer_username
+          });
         }
       });
   
@@ -162,6 +171,8 @@ app.get('/dashboard/:genre?', checkAuth, (req, res) => {
       });
     });
   });
+  
+  
   
 
 // Route to fetch answers for a specific question
@@ -223,38 +234,49 @@ app.get('/logout', (req, res) => {
 app.get('/dashboard/genres/:genre', checkAuth, (req, res) => {
     const genre = req.params.genre;
     const query = `
-      SELECT q.id as question_id, q.question, q.genre, a.answer
+      SELECT q.id as question_id, q.question, q.genre, qu.username as question_username, 
+             a.answer, au.username as answer_username
       FROM questions q
       LEFT JOIN answers a ON q.id = a.question_id
+      LEFT JOIN users qu ON q.user_id = qu.id
+      LEFT JOIN users au ON a.user_id = au.id
       WHERE q.genre = ?
     `;
-
+  
     connection.query(query, [genre], (err, results) => {
-        if (err) {
-            console.error('Error fetching questions by genre:', err);
-            res.status(500).json({ message: 'Error fetching questions by genre' });
-            return;
+      if (err) {
+        console.error('Error fetching questions by genre:', err);
+        res.status(500).json({ message: 'Error fetching questions by genre' });
+        return;
+      }
+  
+      const questions = results.reduce((acc, curr) => {
+        const questionIndex = acc.findIndex(q => q.id === curr.question_id);
+        if (questionIndex !== -1) {
+          acc[questionIndex].answers.push({
+            text: curr.answer,
+            username: curr.answer_username
+          });
+        } else {
+          acc.push({
+            id: curr.question_id,
+            genre: curr.genre,
+            question: curr.question,
+            username: curr.question_username,
+            answers: curr.answer ? [{
+              text: curr.answer,
+              username: curr.answer_username
+            }] : []
+          });
         }
-
-        const questions = results.reduce((acc, curr) => {
-            const questionIndex = acc.findIndex(q => q.id === curr.question_id);
-            if (questionIndex !== -1) {
-                acc[questionIndex].answers.push(curr.answer);
-            } else {
-                acc.push({
-                    id: curr.question_id,
-                    genre: curr.genre,
-                    question: curr.question,
-                    answers: curr.answer ? [curr.answer] : []
-                });
-            }
-            return acc;
-        }, []);
-
-        console.log('Processed Questions:', questions);
-        res.json(questions);
+        return acc;
+      }, []);
+  
+      console.log('Processed Questions:', questions);
+      res.json(questions);
     });
-});
+  });
+  
 
 // Route to delete a question and its answers
 // Route to delete a question and its answers
