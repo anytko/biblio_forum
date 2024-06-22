@@ -53,23 +53,27 @@ app.get('/login', (req, res) => {
 
 // Route to handle login form submission
 app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  const query = 'SELECT * FROM users WHERE username = ?';
-
-  connection.query(query, [username], (err, results) => {
-    if (err) {
-      console.error('Error querying MySQL:', err);
-      return res.status(500).send('Internal server error');
-    }
-
-    if (results.length === 0 || results[0].password !== password) {
-      return res.send('Invalid username or password');
-    }
-
-    req.session.username = username;
-    res.redirect('/dashboard');
+    const { username, password } = req.body;
+    const query = 'SELECT * FROM users WHERE username = ?';
+  
+    connection.query(query, [username], (err, results) => {
+      if (err) {
+        console.error('Error querying MySQL:', err);
+        return res.status(500).send('Internal server error');
+      }
+  
+      if (results.length === 0 || results[0].password !== password) {
+        return res.send('Invalid username or password');
+      }
+  
+      // Store userId and username in session
+      const userId = results[0].id; // Assuming 'id' is your primary key column name
+      req.session.userId = userId;
+      req.session.username = username;
+      
+      res.redirect('/dashboard');
+    });
   });
-});
 
 // Route to display the account creation form
 app.get('/create-account', (req, res) => {
@@ -196,26 +200,22 @@ app.get('/logout', (req, res) => {
 
   
   // Route to handle form submission for answering a question
-  app.post('/submit-answer', checkAuth, (req, res) => {
-    const { questionId, answer, genre } = req.body; // Extract genre from req.body
-
-    const query = 'INSERT INTO answers (question_id, answer) VALUES (?, ?)';
-
-    connection.query(query, [questionId, answer], (err, result) => {
-        if (err) {
-            console.error('Error inserting answer:', err);
-            return res.status(500).json({ message: 'Error inserting answer' });
-        }
-
-        // Return the newly inserted answer data as JSON response
-        res.status(200).json({
-            message: 'Answer submitted successfully!',
-            answer: {
-                answer: answer
-            }
-        });
+  app.post('/submit-answer', (req, res) => {
+    const { questionId, answer, userId } = req.body; // Extract userId from the request body
+  
+    const query = 'INSERT INTO answers (question_id, answer, user_id) VALUES (?, ?, ?)';
+    const params = [questionId, answer, userId];
+  
+    connection.query(query, params, (err, results) => {
+      if (err) {
+        console.error('Error submitting answer:', err);
+        res.status(500).send('Error submitting answer');
+        return;
+      }
+      res.send({ message: 'Answer submitted successfully', answer: { answer: answer } });
     });
-});
+  });
+  
 
   
   // Route to display questions by genre
@@ -284,14 +284,16 @@ app.delete('/delete-question/:questionId', checkAuth, (req, res) => {
   });
   
   
-
-
   app.post('/add-question', (req, res) => {
-    const { question, genre } = req.body;
-    
-    // Example logic to insert into a database
-    const query = 'INSERT INTO questions (question, genre) VALUES (?, ?)';
-    connection.query(query, [question, genre], (err, result) => {
+    const { question, genre, userId } = req.body;
+  
+    // Ensure userId is present
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+  
+    const query = 'INSERT INTO questions (question, genre, user_id) VALUES (?, ?, ?)';
+    connection.query(query, [question, genre, userId], (err, result) => {
       if (err) {
         console.error('Error inserting into MySQL:', err);
         return res.status(500).send('Internal server error');
@@ -303,11 +305,13 @@ app.delete('/delete-question/:questionId', checkAuth, (req, res) => {
         question: {
           id: insertedId,
           question: question,
-          genre: genre
+          genre: genre,
+          userId: userId // Include userId in the response
         }
       });
     });
   });
+  
 
 // Start the server
 app.listen(port, () => {
