@@ -327,31 +327,31 @@
     
       // Handle form submission for answering a question
       $('#answerForm').on('submit', function(event) {
-    event.preventDefault();
-    var formData = $(this).serialize();
-    var questionId = $('#questionId').val(); // Get the question ID
+  event.preventDefault();
+  var formData = $(this).serialize();
+  var questionId = $('#questionId').val(); // Get the question ID
 
-    $.ajax({
-      url: '/submit-answer',
-      method: 'POST',
-      data: formData,
-      success: function(response) {
-        alert(response.message); // Show success message
-        $('#answerModal').modal('hide'); // Hide the modal after submission
-        updateURL($('#answerGenre').val()); // Update URL with the selected genre
+  $.ajax({
+    url: '/submit-answer',
+    method: 'POST',
+    data: formData,
+    success: function(response) {
+      alert(response.message); // Show success message
+      $('#answerModal').modal('hide'); // Hide the modal after submission
+      updateURL($('#answerGenre').val()); // Update URL with the selected genre
 
-        // Update the corresponding question card with the new answer
-        var answersContainer = $('#answers-container-' + questionId);
-        var newAnswer = '<p class="card-text">' + response.answer.answer + '</p>'; // Assuming response.answer.answer contains the new answer text
-        answersContainer.find('.no-answers-message').remove(); // Remove the "No answers yet" message if it exists
-        answersContainer.append(newAnswer); // Append the new answer
-      },
-      error: function(err) {
-        console.error('Error submitting answer:', err);
-        alert('Error submitting answer. Please try again.'); // Show error message
-      }
-    });
+      // Update the corresponding question card with the new answer
+      var answersContainer = $('#answers-container-' + questionId);
+      var newAnswer = `<p class="card-text"><strong>${response.answer.username}:</strong> ${response.answer.answer}</p>`;
+      answersContainer.find('.no-answers-message').remove(); // Remove the "No answers yet" message if it exists
+      answersContainer.append(newAnswer); // Append the new answer
+    },
+    error: function(err) {
+      console.error('Error submitting answer:', err);
+      alert('Error submitting answer. Please try again.'); // Show error message
+    }
   });
+});
     
       // Handle genre link click event to show the corresponding genre section
       $(document).on('click', '.genre-link', function(event) {

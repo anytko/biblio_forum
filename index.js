@@ -211,7 +211,8 @@ app.get('/logout', (req, res) => {
 
   
   // Route to handle form submission for answering a question
-  app.post('/submit-answer', (req, res) => {
+// Route to handle form submission for answering a question
+app.post('/submit-answer', (req, res) => {
     const { questionId, answer, userId } = req.body; // Extract userId from the request body
   
     const query = 'INSERT INTO answers (question_id, answer, user_id) VALUES (?, ?, ?)';
@@ -223,10 +224,21 @@ app.get('/logout', (req, res) => {
         res.status(500).send('Error submitting answer');
         return;
       }
-      res.send({ message: 'Answer submitted successfully', answer: { answer: answer } });
+  
+      // Fetch the username to include it in the response
+      const fetchUserQuery = 'SELECT username FROM users WHERE id = ?';
+      connection.query(fetchUserQuery, [userId], (err, userResults) => {
+        if (err) {
+          console.error('Error fetching username:', err);
+          res.status(500).send('Error fetching username');
+          return;
+        }
+        const username = userResults[0].username;
+        res.send({ message: 'Answer submitted successfully', answer: { answer: answer, username: username } });
+      });
     });
   });
-  
+
 
   
   // Route to display questions by genre
