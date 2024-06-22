@@ -3,15 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= genre %> Questions - BiblioForum</title>
+  <title>Questions Dashboard</title>
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+    <style>
+        body {
+          padding-top: 60px; /* Adjust based on your header height */
+        }
+        .container {
+          max-width: 960px; /* Adjust based on your content width */
+          margin: 0 auto; /* Center align container */
+        }
+        .sidebar {
+          position: fixed;
+          top: 60px; /* Adjust to match header height */
+          left: 0;
+          z-index: 100;
+          padding: 20px 0; /* Adjust padding as needed */
+          box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+          width: 250px; /* Adjust based on your sidebar width */
+          overflow-y: auto; /* Ensure sidebar is scrollable */
+          height: 100vh; /* Ensure sidebar takes full viewport height */
+          background-color: #f8f9fa; /* Sidebar background color */
+        }
+        .main-content {
+          margin-left: 270px; /* Adjust to accommodate sidebar width */
+          padding-top: 60px; /* Adjust based on your header height */
+        }
+        .genre-section {
+          display: none; /* Initially hide all genre sections */
+          margin-bottom: 40px; /* Adjust spacing between sections */
+        }
+        .genre-section.active {
+          display: block; /* Display only the active genre section */
+        }
+      </style>
   <!-- Header -->
   <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="#">BiblioForum - <%= genre %> Questions</a>
+      <a class="navbar-brand" href="#">Questions Dashboard</a>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
@@ -27,8 +59,22 @@
     </div>
   </nav>
 
+ <!-- Sidebar -->
+<div class="sidebar">
+    <div class="sticky-top">
+      <h5 class="text-center mt-3">Genres</h5>
+      <ul class="nav flex-column">
+        <% genres.forEach(genreItem => { %>
+          <li class="nav-item">
+            <a class="nav-link genre-link" href="#" data-genre="<%= genreItem %>"><%= genreItem %></a>
+          </li>
+        <% }); %>
+      </ul>
+    </div>
+  </div>
+  
   <!-- Main Content -->
-  <div class="main-content">
+  <div class="main-content mt-5 pt-5">
     <div class="container">
       <h2 class="mt-4">Book Questions - <%= genre %></h2>
       <hr>
@@ -46,7 +92,8 @@
                         data-toggle="modal"
                         data-target="#answerModal"
                         data-question-id="<%= question.id %>"
-                        data-question-text="<%= question.question %>">
+                        data-question-text="<%= question.question %>"
+                        data-genre="<%= genre %>">
                   Answer
                 </button>
               </div>
@@ -104,6 +151,7 @@
               <textarea class="form-control" id="answer" name="answer" rows="3" required></textarea>
             </div>
             <input type="hidden" name="questionId" id="questionId">
+            <input type="hidden" name="genre" id="answerGenre">
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -114,41 +162,111 @@
     </div>
   </div>
 
-  <!-- Bootstrap JS (Optional, for Bootstrap components like dropdowns, modals, etc.) -->
+  <!-- jQuery and Bootstrap JS (Optional) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
   <script>
-    $(document).ready(function() {
-      // Handle modal show event to update modal title and question ID for answering questions
-      $('#answerModal').on('show.bs.modal', function(event) {
-        var button = $(event.relatedTarget); // Button that triggered the modal
-        var questionId = button.data('question-id'); // Extract question ID from data-* attributes
-        var questionText = button.data('question-text'); // Extract question text from data-* attributes
-        $('#answerModalLabel').text('Answer Question - ' + questionText); // Update modal title with the question text
-        $('#questionId').val(questionId); // Set the hidden input value for question ID in the modal form
+  $(document).ready(function() {
+    // Function to update URL
+    function updateURL(genre) {
+      var newURL = window.location.origin + '/dashboard/genres/' + genre;
+      history.pushState({ path: newURL }, '', newURL);
+    }
+  
+    // Function to update main content with fetched data by genre
+    function updateGenre(genre) {
+      $.ajax({
+        url: '/dashboard/genres/' + genre,
+        method: 'GET',
+        success: function(data) {
+          $('.genre-section').removeClass('active'); // Remove active class from all genre sections
+          $('#' + genre).addClass('active'); // Add active class to the selected genre section
+          $('#main-content').html(data); // Update main content with fetched data
+        },
+        error: function(err) {
+          console.error('Error fetching questions by genre:', err);
+          alert('Error fetching questions by genre. Please try again.');
+        }
       });
-
-      // Handle form submission for answering a question
-      $('#answerForm').on('submit', function(event) {
-        event.preventDefault();
-        var formData = $(this).serialize();
-
-        $.ajax({
-          url: '/submit-answer',
-          method: 'POST',
-          data: formData,
-          success: function(response) {
-            alert(response.message); // Show success message
-            $('#answerModal').modal('hide'); // Hide the modal after submission
-            location.reload(); // Reload the page to see the updated answer
-          },
-          error: function(err) {
-            console.error('Error submitting answer:', err);
-            alert('Error submitting answer. Please try again.'); // Show error message
-          }
-        });
+    }
+  
+    // Handle modal show event to update modal title and question ID for answering questions
+    $('#answerModal').on('show.bs.modal', function(event) {
+      var button = $(event.relatedTarget); // Button that triggered the modal
+      var questionId = button.data('question-id'); // Extract question ID from data-* attributes
+      var questionText = button.data('question-text'); // Extract question text from data-* attributes
+      var genre = button.data('genre'); // Extract genre from data-* attributes
+      $('#answerModalLabel').text('Answer Question - ' + questionText); // Update modal title with the question text
+      $('#questionId').val(questionId); // Set the hidden input value for question ID in the modal form
+      $('#answerGenre').val(genre); // Set the hidden input value for genre in the modal form
+    });
+  
+    // Handle form submission for answering a question
+    $('#answerForm').on('submit', function(event) {
+      event.preventDefault();
+      var formData = $(this).serialize();
+  
+      $.ajax({
+        url: '/submit-answer',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+          alert(response.message); // Show success message
+          $('#answerModal').modal('hide'); // Hide the modal after submission
+          updateURL($('#answerGenre').val()); // Update URL with the selected genre
+          updateGenre($('#answerGenre').val()); // Update main content with data for the selected genre
+        },
+        error: function(err) {
+          console.error('Error submitting answer:', err);
+          alert('Error submitting answer. Please try again.'); // Show error message
+        }
       });
     });
-  </script>
+  
+    // Handle genre link click event to show the corresponding genre section
+    $(document).on('click', '.genre-link', function(event) {
+      event.preventDefault();
+      var genre = $(this).data('genre');
+      $('.genre-section').removeClass('active');
+      $('#' + genre).addClass('active');
+      updateURL(genre); // Update URL when clicking on a genre link
+      updateGenre(genre); // Update main content with data for the selected genre
+    });
+  
+    // Handle add question button click event to set the genre in the modal form
+    $('.add-question-btn').on('click', function() {
+      var genre = $(this).data('genre');
+      $('#modalGenre').text(genre);
+      $('#questionGenre').val(genre);
+    });
+  
+    // Handle form submission for adding a new question
+    $('#addQuestionForm').on('submit', function(event) {
+      event.preventDefault();
+      var formData = $(this).serialize();
+  
+      $.ajax({
+        url: '/submit-question',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+          alert(response.message); // Show success message
+          $('#addQuestionModal').modal('hide'); // Hide the modal after submission
+          updateURL($('#questionGenre').val()); // Update URL with the selected genre
+          updateGenre($('#questionGenre').val()); // Update main content with data for the selected genre
+        },
+        error: function(err) {
+          console.error('Error submitting question:', err);
+          alert('Error submitting question. Please try again.'); // Show error message
+        }
+      });
+    });
+  
+    // Other event handlers and functions specific to your genre.ejs file should be added here
+  
+  });
+  
+</script>
 </body>
 </html>

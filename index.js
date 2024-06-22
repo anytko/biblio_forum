@@ -30,11 +30,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-  secret: 'mysecret',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
-}));
+    secret: 'mysecret',
+    resave: false,
+    saveUninitialized: true
+  }));
 
 // Middleware to disable caching
 app.use((req, res, next) => {
@@ -79,42 +78,60 @@ app.get('/create-account', (req, res) => {
 
 // Route to handle account creation form submission
 app.post('/create-account', (req, res) => {
-  const { username, password } = req.body;
-  const query = 'INSERT INTO users (username, password) VALUES (?, ?)';
-
-  connection.query(query, [username, password], (err, results) => {
-    if (err) {
-      console.error('Error inserting into MySQL:', err);
-      return res.status(500).send('Internal server error');
-    }
-
-    req.session.username = username;
-    res.redirect('/dashboard');
+    const { username, password } = req.body;
+    const query = 'INSERT INTO users (username, password) VALUES (?, ?)';
+  
+    connection.query(query, [username, password], (err, results) => {
+      if (err) {
+        console.error('Error inserting into MySQL:', err);
+        return res.status(500).send('Internal server error');
+      }
+  
+      // Fetch userId after successful insertion
+      const userId = results.insertId; // Assuming 'id' is your auto-increment primary key column name
+  
+      // Store userId and username in session
+      req.session.userId = userId;
+      req.session.username = username;
+  
+      res.redirect('/dashboard');
+    });
   });
-});
 
 // Middleware to check if user is logged in
 const checkAuth = (req, res, next) => {
-  if (req.session.username) {
-    next();
-  } else {
-    res.redirect('/login');
-  }
-};
+    if (req.session.username) {
+      next(); // User is authenticated, continue to the next middleware or route handler
+    } else {
+      res.redirect('/login'); // User is not authenticated, redirect to the login page
+    }
+  };
 
 // Route to display the dashboard (protected)
-app.get('/dashboard', checkAuth, (req, res) => {
-    const query = 'SELECT id, genre, question, answer FROM questions';
-    connection.query(query, (err, results) => {
+// Route to display the dashboard (protected)
+app.get('/dashboard/:genre?', checkAuth, (req, res) => {
+    const selectedGenre = req.params.genre || null;
+    let query = `
+      SELECT q.id, q.genre, q.question, a.answer
+      FROM questions q
+      LEFT JOIN answers a ON q.id = a.question_id
+    `;
+  
+    const params = [];
+    if (selectedGenre) {
+      query += ' WHERE q.genre = ?';
+      params.push(selectedGenre);
+    }
+  
+    connection.query(query, params, (err, results) => {
       if (err) {
-        console.error('Error fetching questions:', err);
-        res.status(500).send('Error fetching questions');
+        console.error('Error fetching questions and answers:', err);
+        res.status(500).send('Error fetching questions and answers');
         return;
       }
   
       const genres = ['Autobiography', 'Adventure', 'Biography', 'Comedy', 'Coming-of-Age', 'Fantasy', 'Historical', 'Horror', 'International', 'Memoir', 'Mystery', 'Poetry', 'Romance', 'Science-Fiction', 'Thriller', 'Travel', 'Young-Adult'];
   
-      // Create a map to collect questions and their answers
       const questionMap = {};
       results.forEach(row => {
         if (!questionMap[row.id]) {
@@ -130,18 +147,42 @@ app.get('/dashboard', checkAuth, (req, res) => {
         }
       });
   
-      // Convert the map to an array of questions
       const questions = Object.values(questionMap);
   
       res.render('dashboard', {
         username: req.session.username,
+        userId: req.session.userId,
         genres: genres,
-        questions: questions
+        questions: questions,
+        selectedGenre: selectedGenre
       });
     });
   });
   
-  
+
+// Route to fetch answers for a specific question
+// Example route to fetch answers for a specific question
+app.get('/fetch-answers/:questionId', checkAuth, (req, res) => {
+    const questionId = req.params.questionId;
+
+    const query = 'SELECT answer FROM answers WHERE question_id = ?';
+
+    connection.query(query, [questionId], (err, results) => {
+        if (err) {
+            console.error('Error fetching answers:', err);
+            return res.status(500).send({ message: 'Error fetching answers' });
+        }
+
+        // Map the results to extract only the answer values into an array
+        const answers = results.map(result => result.answer);
+
+        // Send the answers array as JSON response
+        res.json({ answers: answers });
+    });
+});
+
+
+
 
 // Route to handle logout
 app.get('/logout', (req, res) => {
@@ -153,52 +194,103 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// Route to handle form submission from the dashboard
-// Route to handle form submission from the dashboard
-app.post('/submit-answer', checkAuth, (req, res) => {
-    const { questionId, answer } = req.body;
-    
-    const querySelect = `SELECT answer FROM questions WHERE id = ?`;
-    const queryUpdate = `UPDATE questions SET answer = ? WHERE id = ?`;
+  
+  // Route to handle form submission for answering a question
+  app.post('/submit-answer', checkAuth, (req, res) => {
+    const { questionId, answer, genre } = req.body; // Extract genre from req.body
 
-    connection.query(querySelect, [questionId], (err, results) => {
+    const query = 'INSERT INTO answers (question_id, answer) VALUES (?, ?)';
+
+    connection.query(query, [questionId, answer], (err, result) => {
         if (err) {
-            console.error('Error fetching answers:', err);
-            res.status(500).send({ message: 'Error fetching answers' });
-            return;
+            console.error('Error inserting answer:', err);
+            return res.status(500).json({ message: 'Error inserting answer' });
         }
 
-        const currentAnswers = results[0].answer ? JSON.parse(results[0].answer) : [];
-        currentAnswers.push(answer); // Add the new answer to the existing array
-
-        connection.query(queryUpdate, [JSON.stringify(currentAnswers), questionId], (err, result) => {
-            if (err) {
-                console.error('Error updating answers:', err);
-                res.status(500).send({ message: 'Error updating answers' });
-                return;
+        // Return the newly inserted answer data as JSON response
+        res.status(200).json({
+            message: 'Answer submitted successfully!',
+            answer: {
+                answer: answer
             }
-
-            res.send({ message: 'Answer submitted successfully' });
         });
     });
 });
 
-
-// Route to display questions by genre
-app.get('/genre/:genre', checkAuth, (req, res) => {
-    const genre = req.params.genre;
-    const query = `SELECT * FROM questions WHERE genre = ?`;
   
+  // Route to display questions by genre
+// Route to fetch questions and answers by genre
+app.get('/dashboard/genres/:genre', checkAuth, (req, res) => {
+    const genre = req.params.genre;
+    const query = `
+      SELECT q.id as question_id, q.question, q.genre, a.answer
+      FROM questions q
+      LEFT JOIN answers a ON q.id = a.question_id
+      WHERE q.genre = ?
+    `;
+
     connection.query(query, [genre], (err, results) => {
+        if (err) {
+            console.error('Error fetching questions by genre:', err);
+            res.status(500).json({ message: 'Error fetching questions by genre' });
+            return;
+        }
+
+        const questions = results.reduce((acc, curr) => {
+            const questionIndex = acc.findIndex(q => q.id === curr.question_id);
+            if (questionIndex !== -1) {
+                acc[questionIndex].answers.push(curr.answer);
+            } else {
+                acc.push({
+                    id: curr.question_id,
+                    genre: curr.genre,
+                    question: curr.question,
+                    answers: curr.answer ? [curr.answer] : []
+                });
+            }
+            return acc;
+        }, []);
+
+        console.log('Processed Questions:', questions);
+        res.json(questions);
+    });
+});
+
+
+app.delete('/delete-question/:id', (req, res) => {
+    const questionId = req.params.id;
+  
+    // Example: Delete question from a database
+    Question.findByIdAndDelete(questionId, (err) => {
       if (err) {
-        console.error('Error fetching questions by genre:', err);
-        res.status(500).send('Error fetching questions by genre');
-        return;
+        console.error('Error deleting question:', err);
+        res.status(500).json({ message: 'Error deleting question.' });
+      } else {
+        res.json({ message: 'Question deleted successfully.' });
       }
-      res.render('genre', {
-        username: req.session.username,
-        genre: genre,
-        questions: results
+    });
+  });
+
+
+  app.post('/add-question', (req, res) => {
+    const { question, genre } = req.body;
+    
+    // Example logic to insert into a database
+    const query = 'INSERT INTO questions (question, genre) VALUES (?, ?)';
+    connection.query(query, [question, genre], (err, result) => {
+      if (err) {
+        console.error('Error inserting into MySQL:', err);
+        return res.status(500).send('Internal server error');
+      }
+  
+      const insertedId = result.insertId; // Get the ID of the newly inserted question
+      res.status(200).json({
+        message: 'Question successfully added!',
+        question: {
+          id: insertedId,
+          question: question,
+          genre: genre
+        }
       });
     });
   });
