@@ -91,49 +91,45 @@
 <!-- Main Content -->
 <div class="main-content">
   <div class="container-fluid">
-      <% genres.forEach(genre => { %>
-      <section id="<%= genre %>" class="genre-section">
-          <h2 class="mt-4">Book Questions - <%= genre %></h2>
-          <hr>
-          <div id="questions-container-<%= genre %>">
-              <% questions.forEach((q, index) => { %>
-              <% if (q.genre === genre) { %>
-              <div class="card mb-3" id="question-card-<%= q.id %>">
-                  <div class="card-header">
-                      <h5 class="card-title">Question <%= index + 1 %></h5>
-                      <button class="btn btn-danger btn-sm delete-btn" data-question-id="<%= q.id %>">Delete</button>
-                  </div>
-                  <div class="card-body">
-                      <p class="card-text">Question: <%= q.question %></p>
-                      <div class="answers" id="answers-<%= q.id %>">
-                          <% if (q.answers && q.answers.length > 0) { %>
-                          <h6 class="card-subtitle mb-2 text-muted">Answers:</h6>
-                          <% q.answers.forEach((answer, idx) => { %>
-                          <p class="card-text"><%= idx + 1 %>. <%= answer %></p>
-                          <% }); %>
-                          <% } else { %>
-                          <p class="card-text">No answers yet.</p>
-                          <% } %>
-                      </div>
-                      <button class="btn btn-sm btn-primary answer-btn" data-toggle="modal"
-                          data-target="#answerModal" data-question-id="<%= q.id %>"
-                          data-question-text="<%= q.question %>" data-genre="<%= q.genre %>">
-                          Answer
-                      </button>
-                  </div>
-              </div>
-              <% } %>
-              <% }); %>
+    <% genres.forEach(genre => { %>
+    <section id="<%= genre %>" class="genre-section">
+      <h2 class="mt-4">Book Questions - <%= genre %></h2>
+      <hr>
+      <div id="questions-container-<%= genre %>">
+        <% questions.forEach((q, index) => { %>
+        <% if (q.genre === genre) { %>
+        <div class="card mb-3" id="question-card-<%= q.id %>">
+          <div class="card-header">
+            <h5 class="card-title">Question <%= index + 1 %></h5>
+            <button class="btn btn-danger btn-sm delete-btn" data-question-id="<%= q.id %>">Delete</button>
           </div>
-          <button class="btn btn-sm btn-primary mt-2 add-question-btn" data-toggle="modal"
-              data-target="#addQuestionModal" data-genre="<%= genre %>">Add Question</button>
-      </section>
-      <% }); %>
+          <div class="card-body">
+            <p class="card-text">Question: <%= q.question %></p>
+            <div class="answers" id="answers-<%= q.id %>">
+              <% if (q.answers && q.answers.length > 0) { %>
+              <h6 class="card-subtitle mb-2 text-muted">Answers:</h6>
+              <% q.answers.forEach((answer, idx) => { %>
+              <p class="card-text"><%= idx + 1 %>. <%= answer %></p>
+              <% }); %>
+              <% } else { %>
+              <p class="card-text">No answers yet.</p>
+              <% } %>
+            </div>
+            <button class="btn btn-sm btn-primary answer-btn" data-toggle="modal" data-target="#answerModal"
+              data-question-id="<%= q.id %>" data-question-text="<%= q.question %>" data-genre="<%= q.genre %>">
+              Answer
+            </button>
+          </div>
+        </div>
+        <% } %>
+        <% }); %>
+      </div>
+      <button class="btn btn-sm btn-primary mt-2 add-question-btn" data-toggle="modal" data-target="#addQuestionModal"
+        data-genre="<%= genre %>">Add Question</button>
+    </section>
+    <% }); %>
   </div>
 </div>
-
-
-
 
 
   <!-- Modal for adding question -->
@@ -205,42 +201,68 @@
   
       // Function to update main content with fetched data by genre
       function updateGenre(genre) {
-    $.ajax({
-      url: '/dashboard/genres/' + genre,
-      method: 'GET',
-      success: function(data) {
-        $('#questions-container-' + genre).html('');
-        data.forEach(function(question, index) {
-          var answersHTML = renderAnswers(question.answers);
-          var noAnswersMessage = (answersHTML === '') ? '<p class="card-text no-answers-message">No answers yet.</p>' : '';
-          
-          var questionCard = '<div class="card mb-3" id="question-card-' + question.id + '">' +
-                              '<div class="card-body">' +
-                                '<h5 class="card-title">Question ' + (index + 1) + '</h5>' +
-                                '<p class="card-text">Question: ' + question.question + '</p>' +
-                                '<div class="answers" id="answers-container-' + question.id + '">' +
-                                  answersHTML +
-                                  noAnswersMessage +
-                                '</div>' +
-                                '<button class="btn btn-sm btn-primary answer-btn" ' +
-                                        'data-toggle="modal" ' +
-                                        'data-target="#answerModal" ' +
-                                        'data-question-id="' + question.id + '" ' +
-                                        'data-question-text="' + question.question + '" ' +
-                                        'data-genre="' + question.genre + '">Answer</button>' +
-                              '</div>' +
-                            '</div>';
-          $('#questions-container-' + genre).append(questionCard);
+        $.ajax({
+          url: '/dashboard/genres/' + genre,
+          method: 'GET',
+          success: function(data) {
+            $('#questions-container-' + genre).html('');
+            data.forEach(function(question, index) {
+              var answersHTML = renderAnswers(question.answers);
+              var noAnswersMessage = (answersHTML === '') ? '<p class="card-text no-answers-message">No answers yet.</p>' : '';
+  
+              var questionCard = '<div class="card mb-3" id="question-card-' + question.id + '">' +
+                '<div class="card-header">' +
+                '<h5 class="card-title">Question ' + (index + 1) + '</h5>' +
+                '<button class="btn btn-danger btn-sm delete-btn" data-question-id="' + question.id + '">Delete</button>' +
+                '</div>' +
+                '<div class="card-body">' +
+                '<p class="card-text">Question: ' + question.question + '</p>' +
+                '<div class="answers" id="answers-container-' + question.id + '">' +
+                answersHTML +
+                noAnswersMessage +
+                '</div>' +
+                '<button class="btn btn-sm btn-primary answer-btn" ' +
+                'data-toggle="modal" ' +
+                'data-target="#answerModal" ' +
+                'data-question-id="' + question.id + '" ' +
+                'data-question-text="' + question.question + '" ' +
+                'data-genre="' + question.genre + '">Answer</button>' +
+                '</div>' +
+                '</div>';
+              $('#questions-container-' + genre).append(questionCard);
+            });
+            $('.genre-section').removeClass('active'); // Remove active class from all genre sections
+            $('#' + genre).addClass('active'); // Add active class to the selected genre section
+          },
+          error: function(err) {
+            console.error('Error fetching questions by genre:', err);
+            alert('Error fetching questions by genre. Please try again.');
+          }
         });
-        $('.genre-section').removeClass('active'); // Remove active class from all genre sections
-        $('#' + genre).addClass('active'); // Add active class to the selected genre section
+      }
+  
+      // Handle delete button click event
+      $(document).on('click', '.delete-btn', function(event) {
+  var questionId = $(this).data('question-id');
+
+  if (confirm('Are you sure you want to delete this question?')) {
+    $.ajax({
+      url: '/delete-question/' + questionId,
+      type: 'DELETE',
+      success: function(response) {
+        // Handle success, maybe update UI or notify user
+        console.log('Question deleted successfully');
+        // Optionally, you can remove the question from the UI
+        $('#question-card-' + questionId).remove();
       },
       error: function(err) {
-        console.error('Error fetching questions by genre:', err);
-        alert('Error fetching questions by genre. Please try again.');
+        // Handle error, show error message or log
+        console.error('Error deleting question:', err);
+        alert('Error deleting question. Please try again.');
       }
     });
   }
+});
   
       // Function to fetch and display answers for a given question ID
       function fetchAnswers(questionId) {
@@ -249,7 +271,7 @@
           method: 'GET',
           success: function(data) {
             console.log('Fetched answers:', data); // Debugging log
-            const answersContainer = $(`#answers-${questionId}`);
+            const answersContainer = $(`#answers-container-${questionId}`);
             answersContainer.empty(); // Clear previous answers
             if (data.answers && data.answers.length > 0) {
               answersContainer.append('<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>');
@@ -265,17 +287,17 @@
           }
         });
       }
-
+  
       function renderAnswers(answers) {
-    if (answers && answers.length > 0) {
-      var answersHTML = '<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>';
-      answers.forEach(function(answer, idx) {
-        answersHTML += '<p class="card-text">' + (idx + 1) + '. ' + answer + '</p>';
-      });
-      return answersHTML;
-    }
-    return ''; // Return empty string if no answers
-  }
+        if (answers && answers.length > 0) {
+          var answersHTML = '<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>';
+          answers.forEach(function(answer, idx) {
+            answersHTML += '<p class="card-text">' + (idx + 1) + '. ' + answer + '</p>';
+          });
+          return answersHTML;
+        }
+        return ''; // Return empty string if no answers
+      }
   
       // Handle modal show event to update modal title and question ID for answering questions
       $('#answerModal').on('show.bs.modal', function(event) {
@@ -288,47 +310,33 @@
         $('#answerGenre').val(genre); // Set the hidden input value for genre in the modal form
       });
   
-// Handle form submission for answering a question
-$('#answerModal').on('show.bs.modal', function(event) {
-    var button = $(event.relatedTarget); // Button that triggered the modal
-    var questionId = button.data('question-id'); // Extract question ID from data-* attributes
-    var questionText = button.data('question-text'); // Extract question text from data-* attributes
-    var genre = button.data('genre'); // Extract genre from data-* attributes
-    $('#answerModalLabel').text('Answer Question - ' + questionText); // Update modal title with the question text
-    $('#questionId').val(questionId); // Set the hidden input value for question ID in the modal form
-    $('#answerGenre').val(genre); // Set the hidden input value for genre in the modal form
-  });
-
-  // Handle form submission for answering a question
-  $('#answerForm').on('submit', function(event) {
-    event.preventDefault();
-    var formData = $(this).serialize();
-    var questionId = $('#questionId').val(); // Get the question ID
-
-    $.ajax({
-      url: '/submit-answer',
-      method: 'POST',
-      data: formData,
-      success: function(response) {
-        alert(response.message); // Show success message
-        $('#answerModal').modal('hide'); // Hide the modal after submission
-        updateURL($('#answerGenre').val()); // Update URL with the selected genre
-        
-        // Update the corresponding question card with the new answer
-        var answersContainer = $('#answers-container-' + questionId);
-        var newAnswer = '<p class="card-text">' + response.answer.answer + '</p>'; // Assuming response.answer.answer contains the new answer text
-        answersContainer.find('.no-answers-message').remove(); // Remove the "No answers yet" message if it exists
-        answersContainer.append(newAnswer); // Append the new answer
-      },
-      error: function(err) {
-        console.error('Error submitting answer:', err);
-        alert('Error submitting answer. Please try again.'); // Show error message
-      }
-    });
-  });
-
-
-
+      // Handle form submission for answering a question
+      $('#answerForm').on('submit', function(event) {
+        event.preventDefault();
+        var formData = $(this).serialize();
+        var questionId = $('#questionId').val(); // Get the question ID
+  
+        $.ajax({
+          url: '/submit-answer',
+          method: 'POST',
+          data: formData,
+          success: function(response) {
+            alert(response.message); // Show success message
+            $('#answerModal').modal('hide'); // Hide the modal after submission
+            updateURL($('#answerGenre').val()); // Update URL with the selected genre
+  
+            // Update the corresponding question card with the new answer
+            var answersContainer = $('#answers-container-' + questionId);
+            var newAnswer = '<p class="card-text">' + response.answer.answer + '</p>'; // Assuming response.answer.answer contains the new answer text
+            answersContainer.find('.no-answers-message').remove(); // Remove the "No answers yet" message if it exists
+            answersContainer.append(newAnswer); // Append the new answer
+          },
+          error: function(err) {
+            console.error('Error submitting answer:', err);
+            alert('Error submitting answer. Please try again.'); // Show error message
+          }
+        });
+      });
   
       // Handle genre link click event to show the corresponding genre section
       $(document).on('click', '.genre-link', function(event) {
@@ -369,27 +377,6 @@ $('#answerModal').on('show.bs.modal', function(event) {
         });
       });
   
-    
-      // Handle delete button click event
-      $(document).on('click', '.delete-btn', function(event) {
-        var questionId = $(this).data('question-id');
-    
-        if (confirm('Are you sure you want to delete this question?')) {
-          $.ajax({
-            url: '/delete-question/' + questionId,
-            method: 'DELETE',
-            success: function(response) {
-              alert(response.message); // Show success message
-              $('#question-card-' + questionId).remove(); // Remove the question card from the DOM
-            },
-            error: function(err) {
-              console.error('Error deleting question:', err);
-              alert('Error deleting question. Please try again.'); // Show error message
-            }
-          });
-        }
-      });
-    
       // Show the default genre section on page load
       var defaultGenre = '<%= genres.length > 0 ? genres[0] : "" %>';
       if (defaultGenre) {
@@ -397,9 +384,8 @@ $('#answerModal').on('show.bs.modal', function(event) {
         updateURL(defaultGenre);
       }
     });
-    </script>
-       
-      
+  </script>
+  
     
 </body>
 </html>

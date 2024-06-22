@@ -256,20 +256,34 @@ app.get('/dashboard/genres/:genre', checkAuth, (req, res) => {
     });
 });
 
-
-app.delete('/delete-question/:id', (req, res) => {
-    const questionId = req.params.id;
+// Route to delete a question and its answers
+// Route to delete a question and its answers
+app.delete('/delete-question/:questionId', checkAuth, (req, res) => {
+    const questionId = req.params.questionId;
   
-    // Example: Delete question from a database
-    Question.findByIdAndDelete(questionId, (err) => {
+    // Delete answers associated with the question first
+    const deleteAnswersQuery = 'DELETE FROM answers WHERE question_id = ?';
+    connection.query(deleteAnswersQuery, [questionId], (err, result) => {
       if (err) {
-        console.error('Error deleting question:', err);
-        res.status(500).json({ message: 'Error deleting question.' });
-      } else {
-        res.json({ message: 'Question deleted successfully.' });
+        console.error('Error deleting answers:', err);
+        return res.status(500).send('Error deleting answers');
       }
+  
+      // After deleting answers, delete the question
+      const deleteQuestionQuery = 'DELETE FROM questions WHERE id = ?';
+      connection.query(deleteQuestionQuery, [questionId], (err, result) => {
+        if (err) {
+          console.error('Error deleting question:', err);
+          return res.status(500).send('Error deleting question');
+        }
+  
+        // Send an empty response
+        res.end();
+      });
     });
   });
+  
+  
 
 
   app.post('/add-question', (req, res) => {
