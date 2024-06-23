@@ -102,6 +102,7 @@ app.post('/create-account', (req, res) => {
     });
   });
 
+
 // Middleware to check if user is logged in
 const checkAuth = (req, res, next) => {
     if (req.session.username) {

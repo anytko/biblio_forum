@@ -1,18 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Create Account</title>
+  <title>Register</title>
+  <style>
+    .error-message {
+      color: red;
+      font-size: 0.8em;
+    }
+  </style>
 </head>
 <body>
-  <h2>Create Account</h2>
-  <form action="/create-account" method="post">
+  <h2>Register</h2>
+  <form id="registrationForm" action="/create-account" method="post">
     <label for="username">Username:</label><br>
-    <input type="text" id="username" name="username"><br>
+    <input type="text" id="username" name="username" required><br>
     <label for="password">Password:</label><br>
-    <input type="password" id="password" name="password"><br><br>
-    <button type="submit">Create Account</button>
+    <input type="password" id="password" name="password" required><br>
+    <div id="passwordError" class="error-message"></div>
+    <label for="repeat-password">Repeat Password:</label><br>
+    <input type="password" id="repeat-password" name="repeatPassword" required><br>
+    <div id="repeatPasswordError" class="error-message"></div><br>
+    <input type="checkbox" id="agree" name="agree" value="yes" required>
+    <label for="agree">I agree to the <a href="/terms">Terms and Conditions</a> and <a href="/privacy">Privacy Policy</a></label><br><br>
+    <div id="termsError" class="error-message"></div><br>
+    <button type="submit">Register</button>
   </form>
   <br>
   <a href="/login">Back to Login</a>
+
+  <script>
+     document.getElementById('registrationForm').onsubmit = function(event) {
+    // Reset previous error messages
+    document.getElementById('passwordError').textContent = '';
+    document.getElementById('repeatPasswordError').textContent = '';
+    document.getElementById('termsError').textContent = '';
+
+    // Fetch form inputs
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const repeatPassword = document.getElementById('repeat-password').value.trim();
+    const agree = document.getElementById('agree').checked;
+
+    // Client-side validation
+    let isValid = true;
+
+    // Check if password meets requirements
+    if (password.length < 8) {
+      document.getElementById('passwordError').textContent = 'Password must be at least 8 characters long.';
+      isValid = false;
+    } else if (!/\d/.test(password)) {
+      document.getElementById('passwordError').textContent = 'Password must include at least one number.';
+      isValid = false;
+    }
+
+    // Check if repeated password matches initial password
+    if (password !== repeatPassword) {
+      document.getElementById('repeatPasswordError').textContent = 'Passwords do not match.';
+      isValid = false;
+    }
+
+    // Check if Terms and Conditions checkbox is checked
+    if (!agree) {
+      document.getElementById('termsError').textContent = 'You must agree to the Terms and Conditions and Privacy Policy.';
+      isValid = false;
+    }
+
+    // Prevent form submission if validation fails
+    if (!isValid) {
+      event.preventDefault(); // Prevent form submission
+    }
+  };
+  </script>
 </body>
 </html>
+
+
