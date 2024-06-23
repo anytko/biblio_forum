@@ -8,7 +8,7 @@
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <!-- Custom CSS -->
   <style>
- /* Body and general layout */
+
 body {
   font-family: 'Georgia', serif; /* Use a serif font for a literary feel */
   line-height: 1.6;
@@ -18,13 +18,12 @@ body {
 }
 
 .container {
-  max-width: 960px;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .container-fluid {
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 /* Navbar */
@@ -40,6 +39,7 @@ body {
 .navbar-text {
   font-size: 1rem;
   color: #6c757d; /* Slightly muted text color */
+  margin-right: 15px; /* Space between text and logout link */
 }
 
 .navbar-light .navbar-nav .nav-link {
@@ -48,6 +48,10 @@ body {
 
 .navbar-light .navbar-nav .nav-link:hover {
   color: #343a40; /* Darker text color on hover */
+}
+
+.navbar-nav {
+  margin-left: auto; /* Pushes navbar-nav to the right */
 }
 
 /* Sidebar */
@@ -199,15 +203,21 @@ body {
   }
 }
 
+.navbar-brand, .navbar-nav {
+      margin-left: 20px;
+      margin-right: 20px;
+    }
+
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
-    <div class="container">
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+  <div class="container-fluid">
+    <div class="d-flex w-100 justify-content-between">
       <a class="navbar-brand" href="#">BiblioForum Dashboard</a>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <div class="collapse navbar-collapse">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
             <span class="navbar-text">
@@ -220,7 +230,8 @@ body {
         </ul>
       </div>
     </div>
-  </nav>
+  </div>
+</nav>
 
   <!-- Sidebar -->
   <div class="sidebar">
