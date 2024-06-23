@@ -108,8 +108,8 @@
             <div class="answers" id="answers-<%= q.id %>">
               <% if (q.answers && q.answers.length > 0) { %>
               <h6 class="card-subtitle mb-2 text-muted">Answers:</h6>
-              <% q.answers.forEach((answer, idx) => { %>
-              <p class="card-text"><%= idx + 1 %>. <strong><%= answer.username %>:</strong> <%= answer.text %></p>
+              <% q.answers.forEach((answer) => { %>
+              <p class="card-text"><strong><%= answer.username %>:</strong> <%= answer.text %></p>
               <% }); %>
               <% } else { %>
               <p class="card-text">No answers yet.</p>
@@ -306,8 +306,8 @@
       function renderAnswers(answers) {
   if (answers && answers.length > 0) {
     var answersHTML = '<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>';
-    answers.forEach(function(answer, idx) {
-      answersHTML += '<p class="card-text">' + (idx + 1) + '. <strong>' + answer.username + ':</strong> ' + answer.text + '</p>';
+    answers.forEach(function(answer) {
+      answersHTML += '<p class="card-text"><strong>' + answer.username + ':</strong> ' + answer.text + '</p>';
     });
     return answersHTML;
   }
