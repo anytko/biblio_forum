@@ -2,17 +2,83 @@
 <html>
 <head>
   <title>Login</title>
+  <style>
+    .error-message {
+      color: red;
+      font-size: 0.8em;
+    }
+  </style>
 </head>
 <body>
   <h2>Login</h2>
-  <form action="/login" method="post">
+  <form id="loginForm" action="/login" method="post">
     <label for="username">Username:</label><br>
-    <input type="text" id="username" name="username"><br>
+    <input type="text" id="username" name="username" required><br>
+    <div id="usernameError" class="error-message"></div> <!-- Username error message container -->
+    <br>
     <label for="password">Password:</label><br>
-    <input type="password" id="password" name="password"><br><br>
+    <input type="password" id="password" name="password" required><br>
+    <div id="passwordError" class="error-message"></div> <!-- Password error message container -->
+    <br><br>
     <button type="submit">Login</button>
   </form>
   <br>
   <a href="/create-account">Register</a>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent default form submission
+
+      // Reset previous error messages
+      document.getElementById('usernameError').textContent = '';
+      document.getElementById('passwordError').textContent = '';
+
+      // Fetch username and password from form
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      // Create an XMLHttpRequest object
+      const xhr = new XMLHttpRequest();
+
+      // Configure the request
+      xhr.open('POST', '/login', true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+
+      // Set up event listener for when the request completes
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          // Successful login, redirect to dashboard
+          window.location.href = '/dashboard';
+        } else {
+          // Handle error responses
+          const errorMessage = xhr.responseText;
+          if (errorMessage.includes('Username does not exist')) {
+            document.getElementById('usernameError').textContent = errorMessage;
+          } else if (errorMessage.includes('Incorrect password')) {
+            document.getElementById('passwordError').textContent = errorMessage;
+          } else {
+            alert(errorMessage); // Fallback alert if error type is unknown
+          }
+        }
+      };
+
+      // Handle network errors
+      xhr.onerror = function() {
+        alert('Network error occurred. Please try again later.');
+      };
+
+      // Prepare data to send
+      const data = {
+        username: username,
+        password: password
+      };
+
+      // Send the request
+      xhr.send(JSON.stringify(data));
+    });
+  </script>
 </body>
 </html>
+
+
+

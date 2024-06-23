@@ -62,18 +62,27 @@ app.post('/login', (req, res) => {
         return res.status(500).send('Internal server error');
       }
   
-      if (results.length === 0 || results[0].password !== password) {
-        return res.send('Invalid username or password');
+      if (results.length === 0) {
+        // Username not found
+        return res.status(404).send('Username does not exist. Please register or try again.');
       }
   
-      // Store userId and username in session
+      if (results[0].password !== password) {
+        // Incorrect password
+        return res.status(401).send('Incorrect password. Please try again.');
+      }
+  
+      // Login successful - store userId and username in session
       const userId = results[0].id; // Assuming 'id' is your primary key column name
       req.session.userId = userId;
       req.session.username = username;
-      
-      res.redirect('/dashboard');
+  
+      // Send success response
+      res.status(200).send('Login successful');
     });
   });
+  
+  
 
 // Route to display the account creation form
 app.get('/create-account', (req, res) => {
