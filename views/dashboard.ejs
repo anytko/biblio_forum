@@ -8,18 +8,50 @@
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <!-- Custom CSS -->
   <style>
-    body {
-      padding-top: 60px;
-    }
-    .container-fluid {
-      padding-left: 0;
-      padding-right: 0;
-    }
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-    }
-    .sidebar {
+ /* Body and general layout */
+body {
+  font-family: 'Georgia', serif; /* Use a serif font for a literary feel */
+  line-height: 1.6;
+  background-color: #f8f9fa; /* Light background */
+  color: #343a40; /* Dark text color */
+  padding-top: 60px;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.container-fluid {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #ffffff; /* White background */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+  font-size: 1.5rem; /* Larger font for brand */
+}
+
+.navbar-text {
+  font-size: 1rem;
+  color: #6c757d; /* Slightly muted text color */
+}
+
+.navbar-light .navbar-nav .nav-link {
+  color: #6c757d; /* Slightly muted text color */
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+  color: #343a40; /* Darker text color on hover */
+}
+
+/* Sidebar */
+.sidebar {
   position: fixed;
   top: 60px;
   bottom: 0;
@@ -28,43 +60,64 @@
   padding: 20px 0;
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
   width: 250px;
-  overflow-y: auto; /* Enable vertical scrolling */
-  height: calc(100vh - 60px); /* Adjust height to fit viewport minus the top navbar height */
-  background-color: #f8f9fa;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
+  background-color: #ffffff; /* White background */
 }
 
 .sticky-top {
   position: sticky;
   top: 0;
 }
-    .main-content {
-      margin-left: 270px;
-      padding-top: 60px;
-    }
-    .genre-section {
-      display: none;
-      margin-bottom: 40px;
-    }
-    .genre-section.active {
-      display: block;
-    }
-    .answer-btn, .delete-btn {
-      margin-top: 20px;
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .card {
+
+.text-center {
+  color: #343a40; /* Dark text color for headings */
+}
+
+.nav-link {
+  color: #343a40; /* Dark text color for links */
+}
+
+.nav-link:hover {
+  color: #007bff; /* Link color on hover */
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 270px;
+  padding-top: 60px;
+}
+
+.genre-section {
+  display: none;
+  margin-bottom: 40px;
+}
+
+.genre-section.active {
+  display: block;
+}
+
+/* Cards */
+.card {
   border: 1px solid #ccc;
   margin-bottom: 15px;
+  background-color: #ffffff; /* White background for cards */
 }
 
 .card-header {
   background-color: #f5f5f5;
   padding: 10px 15px;
   cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0;
+  color: #343a40; /* Dark text color for card titles */
 }
 
 .card-body {
@@ -74,13 +127,78 @@
 .hidden {
   display: none !important;
 }
-.card-title {
-  margin-bottom: 0; /* Remove bottom margin from card title */
-}
+
 .delete-btn {
-  align-self: flex-start; /* Align delete button to the start (top) of the flex container */
+  align-self: flex-start;
   margin: 0;
 }
+
+/* Buttons */
+.btn-primary {
+  background-color: #007bff; /* Primary button color */
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3; /* Darker hover color */
+  border-color: #0056b3;
+}
+
+.btn-danger {
+  background-color: #dc3545; /* Danger button color */
+  border-color: #dc3545;
+}
+
+.btn-danger:hover {
+  background-color: #c82333; /* Darker hover color */
+  border-color: #bd2130;
+}
+
+/* Modals */
+.modal-content {
+  background-color: #ffffff; /* White background for modals */
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-title {
+  color: #343a40; /* Dark modal title color */
+}
+
+.modal-body {
+  color: #343a40; /* Dark modal body text color */
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+}
+
+/* Forms */
+.form-control {
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+}
+
+.form-control:focus {
+  border-color: #007bff; /* Focus color */
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
   </style>
 </head>
 <body>
