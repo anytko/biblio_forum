@@ -96,32 +96,32 @@
       <h2 class="mt-4">Book Questions - <%= genre %></h2>
       <hr>
       <div id="questions-container-<%= genre %>">
-        <% questions.forEach((q, index) => { %>
-        <% if (q.genre === genre) { %>
-        <div class="card mb-3" id="question-card-<%= q.id %>">
-          <div class="card-header">
-            <h5 class="card-title">Question <%= index + 1 %></h5>
-            <button class="btn btn-danger btn-sm delete-btn" data-question-id="<%= q.id %>">Delete</button>
-          </div>
-          <div class="card-body">
-            <p class="card-text"><strong>Question:</strong> <%= q.question %> <em>(Asked by: <%= q.username %>)</em></p>
-            <div class="answers" id="answers-<%= q.id %>">
-              <% if (q.answers && q.answers.length > 0) { %>
-              <h6 class="card-subtitle mb-2 text-muted">Answers:</h6>
-              <% q.answers.forEach((answer) => { %>
-              <p class="card-text"><strong><%= answer.username %>:</strong> <%= answer.text %></p>
-              <% }); %>
-              <% } else { %>
-              <p class="card-text">No answers yet.</p>
-              <% } %>
+        <% questions.forEach((q) => { %>
+          <% if (q.genre === genre) { %>
+            <div class="card mb-3" id="question-card-<%= q.id %>">
+              <div class="card-header">
+                <h5 class="card-title"><%= q.question %></h5> <!-- Display the actual question text -->
+                <button class="btn btn-danger btn-sm delete-btn" data-question-id="<%= q.id %>">Delete</button>
+              </div>
+              <div class="card-body">
+                <p class="card-text">Asked by: <strong><%= q.username %></strong></p>
+                <div class="answers" id="answers-<%= q.id %>">
+                  <% if (q.answers && q.answers.length > 0) { %>
+                    <h6 class="card-subtitle mb-2 text-muted">Answers:</h6>
+                    <% q.answers.forEach((answer) => { %>
+                      <p class="card-text"><strong><%= answer.username %>:</strong> <%= answer.text %></p>
+                    <% }); %>
+                  <% } else { %>
+                    <p class="card-text">No answers yet.</p>
+                  <% } %>
+                </div>
+                <button class="btn btn-sm btn-primary answer-btn" data-toggle="modal" data-target="#answerModal"
+                  data-question-id="<%= q.id %>" data-question-text="<%= q.question %>" data-genre="<%= q.genre %>">
+                  Answer
+                </button>
+              </div>
             </div>
-            <button class="btn btn-sm btn-primary answer-btn" data-toggle="modal" data-target="#answerModal"
-              data-question-id="<%= q.id %>" data-question-text="<%= q.question %>" data-genre="<%= q.genre %>">
-              Answer
-            </button>
-          </div>
-        </div>
-        <% } %>
+          <% } %>
         <% }); %>
       </div>
       <button class="btn btn-sm btn-primary mt-2 add-question-btn" data-toggle="modal" data-target="#addQuestionModal"
@@ -130,6 +130,7 @@
     <% }); %>
   </div>
 </div>
+
 
 
  <!-- Modal for adding question -->
@@ -202,53 +203,53 @@
         var newURL = window.location.origin + '/dashboard/genres/' + genre;
         history.pushState({ path: newURL }, '', newURL);
       }
-    
+  
       // Function to update main content with fetched data by genre
       function updateGenre(genre) {
-  $.ajax({
-    url: '/dashboard/genres/' + genre,
-    method: 'GET',
-    success: function(data) {
-      $('#questions-container-' + genre).html('');
-      data.forEach(function(question, index) {
-        var answersHTML = renderAnswers(question.answers);
-        var noAnswersMessage = (answersHTML === '') ? '<p class="card-text no-answers-message">No answers yet.</p>' : '';
+    $.ajax({
+      url: '/dashboard/genres/' + genre,
+      method: 'GET',
+      success: function(data) {
+        $('#questions-container-' + genre).html('');
+        data.forEach(function(question) { // Removed index parameter as it's not needed
+          var answersHTML = renderAnswers(question.answers);
+          var noAnswersMessage = (answersHTML === '') ? '<p class="card-text no-answers-message">No answers yet.</p>' : '';
 
-        var questionCard = '<div class="card mb-3" id="question-card-' + question.id + '">' +
-          '<div class="card-header">' +
-          '<h5 class="card-title">Question ' + (index + 1) + '</h5>' +
-          '<button class="btn btn-danger btn-sm delete-btn" data-question-id="' + question.id + '">Delete</button>' +
-          '</div>' +
-          '<div class="card-body">' +
-          '<p class="card-text">Question: ' + question.question + ' <em>(Asked by: ' + question.username + ')</em></p>' +
-          '<div class="answers" id="answers-container-' + question.id + '">' +
-          answersHTML +
-          noAnswersMessage +
-          '</div>' +
-          '<button class="btn btn-sm btn-primary answer-btn" ' +
-          'data-toggle="modal" ' +
-          'data-target="#answerModal" ' +
-          'data-question-id="' + question.id + '" ' +
-          'data-question-text="' + question.question + '" ' +
-          'data-genre="' + question.genre + '">Answer</button>' +
-          '</div>' +
-          '</div>';
-        $('#questions-container-' + genre).append(questionCard);
-      });
-      $('.genre-section').removeClass('active'); // Remove active class from all genre sections
-      $('#' + genre).addClass('active'); // Add active class to the selected genre section
-    },
-    error: function(err) {
-      console.error('Error fetching questions by genre:', err);
-      alert('Error fetching questions by genre. Please try again.');
-    }
-  });
-}
-    
+          var questionCard = '<div class="card mb-3" id="question-card-' + question.id + '">' +
+            '<div class="card-header">' +
+            '<h5 class="card-title">' + question.question + '</h5>' + // Display the actual question text
+            '<button class="btn btn-danger btn-sm delete-btn" data-question-id="' + question.id + '">Delete</button>' +
+            '</div>' +
+            '<div class="card-body">' +
+            '<p class="card-text">Asked by: <strong> ' + question.username + ' </strong> </p>' +
+            '<div class="answers" id="answers-container-' + question.id + '">' +
+            answersHTML +
+            noAnswersMessage +
+            '</div>' +
+            '<button class="btn btn-sm btn-primary answer-btn" ' +
+            'data-toggle="modal" ' +
+            'data-target="#answerModal" ' +
+            'data-question-id="' + question.id + '" ' +
+            'data-question-text="' + question.question + '" ' +
+            'data-genre="' + question.genre + '">Answer</button>' +
+            '</div>' +
+            '</div>';
+          $('#questions-container-' + genre).append(questionCard);
+        });
+        $('.genre-section').removeClass('active'); // Remove active class from all genre sections
+        $('#' + genre).addClass('active'); // Add active class to the selected genre section
+      },
+      error: function(err) {
+        console.error('Error fetching questions by genre:', err);
+        alert('Error fetching questions by genre. Please try again.');
+      }
+    });
+  }
+  
       // Handle delete button click event
       $(document).on('click', '.delete-btn', function(event) {
         var questionId = $(this).data('question-id');
-    
+  
         if (confirm('Are you sure you want to delete this question?')) {
           $.ajax({
             url: '/delete-question/' + questionId,
@@ -267,18 +268,18 @@
           });
         }
       });
-    
+  
       // Add userId to modals when they are shown
       const userId = '<%= userId %>'; // Now we use userId passed from the server
-    
-      $('#addQuestionModal').on('show.bs.modal', function (event) {
+  
+      $('#addQuestionModal').on('show.bs.modal', function(event) {
         $('#questionUserId').val(userId);
       });
-    
-      $('#answerModal').on('show.bs.modal', function (event) {
+  
+      $('#answerModal').on('show.bs.modal', function(event) {
         $('#answerUserId').val(userId);
       });
-    
+  
       // Function to fetch and display answers for a given question ID
       function fetchAnswers(questionId) {
         $.ajax({
@@ -302,18 +303,18 @@
           }
         });
       }
-    
+  
       function renderAnswers(answers) {
-  if (answers && answers.length > 0) {
-    var answersHTML = '<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>';
-    answers.forEach(function(answer) {
-      answersHTML += '<p class="card-text"><strong>' + answer.username + ':</strong> ' + answer.text + '</p>';
-    });
-    return answersHTML;
-  }
-  return ''; // Return empty string if no answers
-}
-    
+        if (answers && answers.length > 0) {
+          var answersHTML = '<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>';
+          answers.forEach(function(answer) {
+            answersHTML += '<p class="card-text"><strong>' + answer.username + ':</strong> ' + answer.text + '</p>';
+          });
+          return answersHTML;
+        }
+        return ''; // Return empty string if no answers
+      }
+  
       // Handle modal show event to update modal title and question ID for answering questions
       $('#answerModal').on('show.bs.modal', function(event) {
         var button = $(event.relatedTarget); // Button that triggered the modal
@@ -324,35 +325,35 @@
         $('#questionId').val(questionId); // Set the hidden input value for question ID in the modal form
         $('#answerGenre').val(genre); // Set the hidden input value for genre in the modal form
       });
-    
+  
       // Handle form submission for answering a question
       $('#answerForm').on('submit', function(event) {
-  event.preventDefault();
-  var formData = $(this).serialize();
-  var questionId = $('#questionId').val(); // Get the question ID
-
-  $.ajax({
-    url: '/submit-answer',
-    method: 'POST',
-    data: formData,
-    success: function(response) {
-      alert(response.message); // Show success message
-      $('#answerModal').modal('hide'); // Hide the modal after submission
-      updateURL($('#answerGenre').val()); // Update URL with the selected genre
-
-      // Update the corresponding question card with the new answer
-      var answersContainer = $('#answers-container-' + questionId);
-      var newAnswer = `<p class="card-text"><strong>${response.answer.username}:</strong> ${response.answer.answer}</p>`;
-      answersContainer.find('.no-answers-message').remove(); // Remove the "No answers yet" message if it exists
-      answersContainer.append(newAnswer); // Append the new answer
-    },
-    error: function(err) {
-      console.error('Error submitting answer:', err);
-      alert('Error submitting answer. Please try again.'); // Show error message
-    }
-  });
-});
-    
+        event.preventDefault();
+        var formData = $(this).serialize();
+        var questionId = $('#questionId').val(); // Get the question ID
+  
+        $.ajax({
+          url: '/submit-answer',
+          method: 'POST',
+          data: formData,
+          success: function(response) {
+            alert(response.message); // Show success message
+            $('#answerModal').modal('hide'); // Hide the modal after submission
+            updateURL($('#answerGenre').val()); // Update URL with the selected genre
+  
+            // Update the corresponding question card with the new answer
+            var answersContainer = $('#answers-container-' + questionId);
+            var newAnswer = `<p class="card-text"><strong>${response.answer.username}:</strong> ${response.answer.answer}</p>`;
+            answersContainer.find('.no-answers-message').remove(); // Remove the "No answers yet" message if it exists
+            answersContainer.append(newAnswer); // Append the new answer
+          },
+          error: function(err) {
+            console.error('Error submitting answer:', err);
+            alert('Error submitting answer. Please try again.'); // Show error message
+          }
+        });
+      });
+  
       // Handle genre link click event to show the corresponding genre section
       $(document).on('click', '.genre-link', function(event) {
         event.preventDefault();
@@ -360,7 +361,7 @@
         updateGenre(genre);
         updateURL(genre);
       });
-    
+  
       // Handle modal show event to update genre in add question modal
       $('#addQuestionModal').on('show.bs.modal', function(event) {
         var button = $(event.relatedTarget);
@@ -368,13 +369,13 @@
         $('#modalGenre').text(genre);
         $('#questionGenre').val(genre);
       });
-    
+  
       // Handle form submission for adding a question
       $('#addQuestionForm').on('submit', function(event) {
         event.preventDefault();
         var formData = $(this).serialize();
         var genre = $('#questionGenre').val();
-    
+  
         $.ajax({
           url: '/add-question',
           method: 'POST',
@@ -391,7 +392,7 @@
           }
         });
       });
-    
+  
       // Show the default genre section on page load
       var defaultGenre = '<%= genres.length > 0 ? genres[0] : "" %>';
       if (defaultGenre) {
@@ -399,8 +400,8 @@
         updateURL(defaultGenre);
       }
     });
-    </script>
-    
+  </script>
   
+    
 </body>
 </html>
