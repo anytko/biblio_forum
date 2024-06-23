@@ -51,6 +51,24 @@
       justify-content: space-between;
       align-items: center;
     }
+    .card {
+  border: 1px solid #ccc;
+  margin-bottom: 15px;
+}
+
+.card-header {
+  background-color: #f5f5f5;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+.card-body {
+  padding: 15px;
+}
+
+.hidden {
+  display: none;
+}
   </style>
 </head>
 <body>
@@ -100,10 +118,10 @@
           <% if (q.genre === genre) { %>
             <div class="card mb-3" id="question-card-<%= q.id %>">
               <div class="card-header">
-                <h5 class="card-title"><%= q.question %></h5> <!-- Display the actual question text -->
+                <h5 class="card-title"><%= q.question %></h5>
                 <button class="btn btn-danger btn-sm delete-btn" data-question-id="<%= q.id %>">Delete</button>
               </div>
-              <div class="card-body">
+              <div class="card-body hidden">
                 <p class="card-text">Asked by: <strong><%= q.username %></strong></p>
                 <div class="answers" id="answers-<%= q.id %>">
                   <% if (q.answers && q.answers.length > 0) { %>
@@ -120,7 +138,8 @@
                   Answer
                 </button>
               </div>
-            </div>
+            </div>            
+            
           <% } %>
         <% }); %>
       </div>
@@ -203,6 +222,15 @@
         var newURL = window.location.origin + '/dashboard/genres/' + genre;
         history.pushState({ path: newURL }, '', newURL);
       }
+
+      $('.card-body').hide();
+
+// Toggle card body visibility on card header click
+$(document).on('click', '.card-header', function() {
+  var card = $(this).closest('.card');
+  var cardBody = card.find('.card-body');
+  cardBody.toggle(); // Toggle visibility of card body
+});
   
       // Function to update main content with fetched data by genre
       function updateGenre(genre) {
