@@ -364,45 +364,46 @@ $(document).ready(function() {
 
   // Function to update main content with fetched data by genre
   function updateGenre(genre) {
-    $.ajax({
-      url: '/dashboard/genres/' + genre,
-      method: 'GET',
-      success: function(data) {
-        $('#questions-container-' + genre).html('');
-        data.forEach(function(question) { // Removed index parameter as it's not needed
-          var answersHTML = renderAnswers(question.answers);
-          var noAnswersMessage = (answersHTML === '') ? '<p class="card-text no-answers-message">No answers yet.</p>' : '';
+  $.ajax({
+    url: '/dashboard/genres/' + genre,
+    method: 'GET',
+    success: function(data) {
+      $('#questions-container-' + genre).html('');
+      data.forEach(function(question) {
+        var answersHTML = renderAnswers(question.answers);
+        var noAnswersMessage = (answersHTML === '') ? '<p class="card-text no-answers-message">No answers yet.</p>' : '';
 
-          var questionCard = '<div class="card mb-3" id="question-card-' + question.id + '">' +
-            '<div class="card-header">' +
-            '<h5 class="card-title">' + question.question + '</h5>' + // Display the actual question text
-            '<button class="btn btn-danger btn-sm delete-btn" data-question-id="' + question.id + '">Delete</button>' +
-            '</div>' +
-            '<div class="card-body hidden">' +
-            '<p class="card-text">Asked by: <strong> ' + question.username + ' </strong> </p>' +
-            '<div class="answers" id="answers-container-' + question.id + '">' +
-            answersHTML +
-            noAnswersMessage +
-            '</div>' +
-            '<button class="btn btn-sm btn-primary answer-btn" ' +
-            'data-toggle="modal" ' +
-            'data-target="#answerModal" ' +
-            'data-question-id="' + question.id + '" ' +
-            'data-question-text="' + question.question + '" ' +
-            'data-genre="' + question.genre + '">Answer</button>' +
-            '</div>' +
-            '</div>';
-          $('#questions-container-' + genre).append(questionCard);
-        });
-        $('.genre-section').removeClass('active'); // Remove active class from all genre sections
-        $('#' + genre).addClass('active'); // Add active class to the selected genre section
-      },
-      error: function(err) {
-        console.error('Error fetching questions by genre:', err);
-        alert('Error fetching questions by genre. Please try again.');
-      }
-    });
-  }
+        var questionCard = '<div class="card mb-3" id="question-card-' + question.id + '">' +
+          '<div class="card-header">' +
+          '<h5 class="card-title">' + question.question + '</h5>' +
+          '<button class="btn btn-danger btn-sm delete-btn" data-question-id="' + question.id + '">Delete</button>' +
+          '</div>' +
+          '<div class="card-body hidden">' +
+          '<p class="card-text">Asked by: <strong> ' + question.username + ' </strong> </p>' +
+          '<div class="answers" id="answers-container-' + question.id + '">' +
+          answersHTML +
+          noAnswersMessage +
+          '</div>' +
+          '<button class="btn btn-sm btn-primary answer-btn" ' +
+          'data-toggle="modal" ' +
+          'data-target="#answerModal" ' +
+          'data-question-id="' + question.id + '" ' +
+          'data-question-text="' + question.question + '" ' +
+          'data-genre="' + question.genre + '">Answer</button>' +
+          '</div>' +
+          '</div>';
+        $('#questions-container-' + genre).append(questionCard);
+      });
+
+      $('.genre-section').removeClass('active'); // Remove active class from all genre sections
+      $('#' + genre).addClass('active'); // Add active class to the selected genre section
+    },
+    error: function(err) {
+      console.error('Error fetching questions by genre:', err);
+      alert('Error fetching questions by genre. Please try again.');
+    }
+  });
+}
 
   // Handle delete button click event
   $(document).on('click', '.delete-btn', function(event) {

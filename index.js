@@ -122,6 +122,7 @@ const checkAuth = (req, res, next) => {
   };
 
 // Route to display the dashboard (protected)
+// Route to fetch questions and answers by genre
 app.get('/dashboard/:genre?', checkAuth, (req, res) => {
     const selectedGenre = req.params.genre || null;
     let query = `
@@ -172,16 +173,24 @@ app.get('/dashboard/:genre?', checkAuth, (req, res) => {
   
       const questions = Object.values(questionMap);
   
-      res.render('dashboard', {
-        username: req.session.username,
-        userId: req.session.userId,
-        genres: genres,
-        questions: questions,
-        selectedGenre: selectedGenre
-      });
+      // Check if it's an AJAX request or a direct page request
+      if (req.xhr) {
+        // AJAX request, return JSON
+        res.json(questions);
+      } else {
+        // Direct page request, render HTML
+        res.render('dashboard', {
+          username: req.session.username,
+          userId: req.session.userId,
+          genres: genres,
+          questions: questions,
+          selectedGenre: selectedGenre
+        });
+      }
     });
   });
-  
+
+
   
   
 
@@ -252,8 +261,7 @@ app.post('/submit-answer', (req, res) => {
 
   
   // Route to display questions by genre
-// Route to fetch questions and answers by genre
-app.get('/dashboard/genres/:genre', checkAuth, (req, res) => {
+  app.get('/dashboard/genres/:genre', checkAuth, (req, res) => {
     const genre = req.params.genre;
     const query = `
       SELECT q.id as question_id, q.question, q.genre, qu.username as question_username, 
@@ -295,9 +303,26 @@ app.get('/dashboard/genres/:genre', checkAuth, (req, res) => {
       }, []);
   
       console.log('Processed Questions:', questions);
-      res.json(questions);
+      
+      if (req.xhr) {
+        // AJAX request, return JSON
+        res.json(questions);
+      } else {
+        // Regular HTTP request, render HTML
+        const genres = ['Autobiography', 'Adventure', 'Biography', 'Comedy', 'Coming-of-Age', 'Fantasy', 'Historical', 'Horror', 'International', 'Memoir', 'Mystery', 'Poetry', 'Romance', 'Science-Fiction', 'Thriller', 'Travel', 'Young-Adult'];
+  
+        res.render('dashboard', {
+          username: req.session.username,
+          userId: req.session.userId,
+          genres: genres,
+          questions: questions,
+          selectedGenre: genre
+        });
+      }
     });
-  });
+});
+
+
   
 
 // Route to delete a question and its answers
