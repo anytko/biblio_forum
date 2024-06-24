@@ -11,7 +11,7 @@ const port = 3000;
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '#Livfast2',
+  password: 'sql_connection_pass',
   database: 'biblio_forum',
   port: '3306' // Your MySQL port
 });
