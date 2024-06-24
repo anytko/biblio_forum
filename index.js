@@ -82,7 +82,19 @@ app.post('/login', (req, res) => {
     });
   });
   
-  
+  function checkUsernameExists(username) {
+    return new Promise((resolve, reject) => {
+      const query = 'SELECT COUNT(*) AS count FROM users WHERE username = ?';
+      connection.query(query, [username], (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          const count = results[0].count;
+          resolve(count > 0);
+        }
+      });
+    });
+  }
 
 // Route to display the account creation form
 app.get('/create-account', (req, res) => {
@@ -90,26 +102,40 @@ app.get('/create-account', (req, res) => {
 });
 
 // Route to handle account creation form submission
-app.post('/create-account', (req, res) => {
+app.post('/create-account', async (req, res) => {
     const { username, password } = req.body;
-    const query = 'INSERT INTO users (username, password) VALUES (?, ?)';
   
-    connection.query(query, [username, password], (err, results) => {
-      if (err) {
-        console.error('Error inserting into MySQL:', err);
-        return res.status(500).send('Internal server error');
+    try {
+      // Check if username already exists
+      const usernameExists = await checkUsernameExists(username);
+      if (usernameExists) {
+        return res.status(400).json({ message: 'Username already exists. Please choose a different username.' });
       }
   
-      // Fetch userId after successful insertion
-      const userId = results.insertId; // Assuming 'id' is your auto-increment primary key column name
+      // Insert new user into the database
+      const insertQuery = 'INSERT INTO users (username, password) VALUES (?, ?)';
+      connection.query(insertQuery, [username, password], (err, results) => {
+        if (err) {
+          console.error('Error inserting into MySQL:', err);
+          return res.status(500).send('Internal server error');
+        }
   
-      // Store userId and username in session
-      req.session.userId = userId;
-      req.session.username = username;
+        // Fetch userId after successful insertion
+        const userId = results.insertId;
   
-      res.redirect('/dashboard');
-    });
+        // Store userId and username in session
+        req.session.userId = userId;
+        req.session.username = username;
+  
+        res.redirect('/dashboard');
+      });
+  
+    } catch (error) {
+      console.error('Error checking username availability or inserting into MySQL:', error);
+      res.status(500).send('Internal server error');
+    }
   });
+  
 
 
 // Middleware to check if user is logged in
@@ -380,8 +406,30 @@ app.delete('/delete-question/:questionId', checkAuth, (req, res) => {
       });
     });
   });
-  
 
+  // Route to check username availability
+  app.post('/check-username', (req, res) => {
+    const { username } = req.body;
+    const query = 'SELECT COUNT(*) AS count FROM users WHERE username = ?';
+  
+    connection.query(query, [username], (err, results) => {
+      if (err) {
+        console.error('Error checking username:', err);
+        return res.status(500).json({ message: 'Internal server error' });
+      }
+  
+      const count = results[0].count;
+      if (count > 0) {
+        // Username already exists
+        return res.json({ available: false });
+      } else {
+        // Username is available
+        return res.json({ available: true });
+      }
+    });
+  });
+  
+  
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

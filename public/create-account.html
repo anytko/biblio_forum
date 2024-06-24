@@ -119,6 +119,7 @@
     <form id="registrationForm" action="/create-account" method="post">
       <label for="username">Username:</label>
       <input type="text" id="username" name="username" required>
+      <div id="usernameError" class="error-message"></div>
       <label for="password">Password:</label>
       <input type="password" id="password" name="password" required>
       <div id="passwordError" class="error-message"></div> <!-- Password error message container -->
@@ -137,47 +138,81 @@
 
 
   <script>
-     document.getElementById('registrationForm').onsubmit = function(event) {
-    // Reset previous error messages
-    document.getElementById('passwordError').textContent = '';
-    document.getElementById('repeatPasswordError').textContent = '';
-    document.getElementById('termsError').textContent = '';
-
-    // Fetch form inputs
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const repeatPassword = document.getElementById('repeat-password').value.trim();
-    const agree = document.getElementById('agree').checked;
-
-    // Client-side validation
-    let isValid = true;
-
-    // Check if password meets requirements
-    if (password.length < 8) {
-      document.getElementById('passwordError').textContent = 'Password must be at least 8 characters long.';
-      isValid = false;
-    } else if (!/\d/.test(password)) {
-      document.getElementById('passwordError').textContent = 'Password must include at least one number.';
-      isValid = false;
+    // Function to check if username exists asynchronously
+    async function checkUsernameExists(username) {
+      try {
+        const response = await fetch('/check-username', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username: username }),
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return !data.available; // Return true if username is not available
+      } catch (error) {
+        console.error('Error checking username availability:', error);
+        throw error;
+      }
     }
 
-    // Check if repeated password matches initial password
-    if (password !== repeatPassword) {
-      document.getElementById('repeatPasswordError').textContent = 'Passwords do not match.';
-      isValid = false;
-    }
+    // Form submission handler
+    document.getElementById('registrationForm').onsubmit = async function(event) {
+      event.preventDefault(); // Prevent default form submission
+      
+      // Reset previous error messages
+      document.getElementById('usernameError').textContent = '';
+      document.getElementById('passwordError').textContent = '';
+      document.getElementById('repeatPasswordError').textContent = '';
+      document.getElementById('termsError').textContent = '';
 
-    // Check if Terms and Conditions checkbox is checked
-    if (!agree) {
-      document.getElementById('termsError').textContent = 'You must agree to the Terms and Conditions and Privacy Policy.';
-      isValid = false;
-    }
+      // Fetch form inputs
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const repeatPassword = document.getElementById('repeat-password').value.trim();
+      const agree = document.getElementById('agree').checked;
 
-    // Prevent form submission if validation fails
-    if (!isValid) {
-      event.preventDefault(); // Prevent form submission
-    }
-  };
+      let isValid = true;
+
+      // Client-side validation
+      if (password.length < 8) {
+        document.getElementById('passwordError').textContent = 'Password must be at least 8 characters long.';
+        isValid = false;
+      } else if (!/\d/.test(password)) {
+        document.getElementById('passwordError').textContent = 'Password must include at least one number.';
+        isValid = false;
+      }
+
+      if (password !== repeatPassword) {
+        document.getElementById('repeatPasswordError').textContent = 'Passwords do not match.';
+        isValid = false;
+      }
+
+      if (!agree) {
+        document.getElementById('termsError').textContent = 'You must agree to the Terms and Conditions and Privacy Policy.';
+        isValid = false;
+      }
+
+      // Check username availability asynchronously
+      if (isValid) {
+        try {
+          const usernameTaken = await checkUsernameExists(username);
+          if (usernameTaken) {
+            document.getElementById('usernameError').textContent = 'Username is already taken.';
+            return; // Stop further processing
+          } else {
+            // Proceed with form submission
+            this.submit();
+          }
+        } catch (error) {
+          console.error('Error checking username availability:', error);
+          document.getElementById('usernameError').textContent = 'Error checking username availability. Please try again later.';
+        }
+      }
+    };
   </script>
 </body>
 </html>
