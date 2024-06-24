@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <style>
+
+body {
+  font-family: 'Georgia', serif; 
+  line-height: 1.6;
+  background-color: #f8f9fa; 
+  color: #343a40; 
+  padding-top: 60px;
+}
+
+.container {
+  margin: 0;
+}
+
+.container-fluid {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #ffffff; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+  font-size: 1.5rem; 
+}
+
+.navbar-text {
+  font-size: 1rem;
+  color: #6c757d; 
+  margin-right: 15px; 
+}
+
+.navbar-light .navbar-nav .nav-link {
+  color: #6c757d; 
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+  color: #343a40; 
+}
+
+.navbar-nav {
+  margin-left: auto; 
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 60px;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  padding: 20px 0;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+  width: 250px;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
+  background-color: #ffffff; 
+}
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+}
+
+.text-center {
+  color: #343a40; 
+}
+
+.nav-link {
+  color: #343a40; 
+}
+
+.nav-link:hover {
+  color: #007bff; 
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 270px;
+  padding-top: 60px;
+}
+
+.genre-section {
+  display: none;
+  margin-bottom: 40px;
+}
+
+.genre-section.active {
+  display: block;
+}
+
+/* Cards */
+.card {
+  border: 1px solid #ccc;
+  margin-bottom: 15px;
+  background-color: #ffffff; 
+}
+
+.card-header {
+  background-color: #f5f5f5;
+  padding: 10px 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0;
+  color: #343a40; 
+}
+
+.card-body {
+  padding: 15px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.delete-btn {
+  align-self: flex-start;
+  margin: 0;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: #007bff; 
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3; 
+  border-color: #0056b3;
+}
+
+.btn-danger {
+  background-color: #dc3545; 
+  border-color: #dc3545;
+}
+
+.btn-danger:hover {
+  background-color: #c82333; 
+  border-color: #bd2130;
+}
+
+/* Modals */
+.modal-content {
+  background-color: #ffffff; 
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-title {
+  color: #343a40; 
+}
+
+.modal-body {
+  color: #343a40; 
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+}
+
+/* Forms */
+.form-control {
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+}
+
+.form-control:focus {
+  border-color: #007bff; 
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+.navbar-brand, .navbar-nav {
+      margin-left: 20px;
+      margin-right: 20px;
+    }
+
+  .answer-btn {
+  margin-top: 15px; 
+}
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+  <div class="container-fluid">
+    <div class="d-flex w-100 justify-content-between">
+      <a class="navbar-brand" href="#">BiblioForum Dashboard</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <span class="navbar-text">
+              Welcome, <%= username %>
+            </span>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/logout">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sticky-top">
+      <h5 class="text-center mt-3">Genres</h5>
+      <ul class="nav flex-column">
+        <% genres.forEach(genre => { %>
+          <li class="nav-item">
+            <a class="nav-link genre-link" href="#" data-genre="<%= genre %>"><%= genre %></a>
+          </li>
+        <% }); %>
+      </ul>
+    </div>
+  </div>
+
+<!-- Main Content -->
+<div class="main-content">
+  <div class="container-fluid">
+    <% genres.forEach(genre => { %>
+    <section id="<%= genre %>" class="genre-section">
+      <h2 class="mt-4">Book Questions - <%= genre %></h2>
+      <hr>
+      <div id="questions-container-<%= genre %>">
+        <% questions.forEach((q) => { %>
+          <% if (q.genre === genre) { %>
+            <div class="card mb-3" id="question-card-<%= q.id %>">
+              <div class="card-header">
+                <h5 class="card-title"><%= q.question %></h5>
+                <button class="btn btn-danger btn-sm delete-btn" data-question-id="<%= q.id %>">Delete</button>
+              </div>
+              <div class="card-body hidden">
+                <p class="card-text">Asked by: <strong><%= q.username %></strong></p>
+                <div class="answers" id="answers-<%= q.id %>">
+                  <% if (q.answers && q.answers.length > 0) { %>
+                    <h6 class="card-subtitle mb-2 text-muted">Answers:</h6>
+                    <% q.answers.forEach((answer) => { %>
+                      <p class="card-text"><strong><%= answer.username %>:</strong> <%= answer.text %></p>
+                    <% }); %>
+                  <% } else { %>
+                    <p class="card-text">No answers yet.</p>
+                  <% } %>
+                </div>
+                <button class="btn btn-sm btn-primary answer-btn" data-toggle="modal" data-target="#answerModal"
+                  data-question-id="<%= q.id %>" data-question-text="<%= q.question %>" data-genre="<%= q.genre %>">
+                  Answer
+                </button>
+              </div>
+            </div>                       
+            
+          <% } %>
+        <% }); %>
+      </div>
+      <button class="btn btn-sm btn-primary mt-2 add-question-btn" data-toggle="modal" data-target="#addQuestionModal"
+        data-genre="<%= genre %>">Add Question</button>
+    </section>
+    <% }); %>
+  </div>
+</div>
+
+
+
+ <!-- Modal for adding question -->
+<div class="modal fade" id="addQuestionModal" tabindex="-1" role="dialog" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addQuestionModalLabel">Add Question - <span id="modalGenre"></span></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="addQuestionForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="question">Question:</label>
+            <input type="text" class="form-control" id="question" name="question" required>
+          </div>
+          <input type="hidden" name="genre" id="questionGenre">
+          <input type="hidden" name="userId" id="questionUserId">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Submit Question</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal for answering questions -->
+<div class="modal fade" id="answerModal" tabindex="-1" role="dialog" aria-labelledby="answerModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="answerModalLabel">Answer Question</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="answerForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="answer">Answer:</label>
+            <textarea class="form-control" id="answer" name="answer" rows="3" required></textarea>
+          </div>
+          <input type="hidden" name="questionId" id="questionId">
+          <input type="hidden" name="genre" id="answerGenre">
+          <input type="hidden" name="userId" id="answerUserId">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Submit Answer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+  <!-- jQuery and Bootstrap JS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+$(document).ready(function() {
+  // Function to update URL
+  function updateURL(genre) {
+    var newURL = window.location.origin + '/dashboard/genres/' + genre;
+    history.pushState({ path: newURL }, '', newURL);
+  }
+
+  // Initially hide all card bodies
+  $('.card-body').addClass('hidden');
+
+  // Toggle card body visibility on card header click
+  $(document).on('click', '.card-header', function() {
+    var cardBody = $(this).next('.card-body');
+    cardBody.toggleClass('hidden'); // Toggle visibility of card body
+  });
+
+  // Function to update main content with fetched data by genre
+  function updateGenre(genre) {
+  $.ajax({
+    url: '/dashboard/genres/' + genre,
+    method: 'GET',
+    success: function(data) {
+      $('#questions-container-' + genre).html('');
+      data.forEach(function(question) {
+        var answersHTML = renderAnswers(question.answers);
+        var noAnswersMessage = (answersHTML === '') ? '<p class="card-text no-answers-message">No answers yet.</p>' : '';
+
+        var questionCard = '<div class="card mb-3" id="question-card-' + question.id + '">' +
+          '<div class="card-header">' +
+          '<h5 class="card-title">' + question.question + '</h5>' +
+          '<button class="btn btn-danger btn-sm delete-btn" data-question-id="' + question.id + '">Delete</button>' +
+          '</div>' +
+          '<div class="card-body hidden">' +
+          '<p class="card-text">Asked by: <strong> ' + question.username + ' </strong> </p>' +
+          '<div class="answers" id="answers-container-' + question.id + '">' +
+          answersHTML +
+          noAnswersMessage +
+          '</div>' +
+          '<button class="btn btn-sm btn-primary answer-btn" ' +
+          'data-toggle="modal" ' +
+          'data-target="#answerModal" ' +
+          'data-question-id="' + question.id + '" ' +
+          'data-question-text="' + question.question + '" ' +
+          'data-genre="' + question.genre + '">Answer</button>' +
+          '</div>' +
+          '</div>';
+        $('#questions-container-' + genre).append(questionCard);
+      });
+
+      $('.genre-section').removeClass('active'); // Remove active class from all genre sections
+      $('#' + genre).addClass('active'); // Add active class to the selected genre section
+    },
+    error: function(err) {
+      console.error('Error fetching questions by genre:', err);
+      alert('Error fetching questions by genre. Please try again.');
+    }
+  });
+}
+
+  // Handle delete button click event
+  $(document).on('click', '.delete-btn', function(event) {
+    var questionId = $(this).data('question-id');
+
+    if (confirm('Are you sure you want to delete this question?')) {
+      $.ajax({
+        url: '/delete-question/' + questionId,
+        type: 'DELETE',
+        success: function(response) {
+          // Handle success, maybe update UI or notify user
+          console.log('Question deleted successfully');
+          // Optionally, you can remove the question from the UI
+          $('#question-card-' + questionId).remove();
+        },
+        error: function(err) {
+          // Handle error, show error message or log
+          console.error('Error deleting question:', err);
+          alert('Error deleting question. Please try again.');
+        }
+      });
+    }
+  });
+
+  // Add userId to modals when they are shown
+  const userId = '<%= userId %>'; // Now we use userId passed from the server
+
+  $('#addQuestionModal').on('show.bs.modal', function(event) {
+    $('#questionUserId').val(userId);
+  });
+
+  $('#answerModal').on('show.bs.modal', function(event) {
+    $('#answerUserId').val(userId);
+  });
+
+  // Function to fetch and display answers for a given question ID
+  function fetchAnswers(questionId) {
+    $.ajax({
+      url: '/fetch-answers/' + questionId,
+      method: 'GET',
+      success: function(data) {
+        console.log('Fetched answers:', data); // Debugging log
+        const answersContainer = $(`#answers-container-${questionId}`);
+        answersContainer.empty(); // Clear previous answers
+        if (data.answers && data.answers.length > 0) {
+          answersContainer.append('<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>');
+          data.answers.forEach((answer, idx) => {
+            answersContainer.append(`<p class="card-text">${idx + 1}. ${answer}</p>`);
+          });
+        } else {
+          answersContainer.append('<p class="card-text">No answers yet.</p>');
+        }
+      },
+      error: function(err) {
+        console.error('Error fetching answers:', err);
+      }
+    });
+  }
+
+  function renderAnswers(answers) {
+    if (answers && answers.length > 0) {
+      var answersHTML = '<h6 class="card-subtitle mb-2 text-muted">Answers:</h6>';
+      answers.forEach(function(answer) {
+        answersHTML += '<p class="card-text"><strong>' + answer.username + ':</strong> ' + answer.text + '</p>';
+      });
+      return answersHTML;
+    }
+    return ''; // Return empty string if no answers
+  }
+
+  // Handle modal show event to update modal title and question ID for answering questions
+  $('#answerModal').on('show.bs.modal', function(event) {
+    var button = $(event.relatedTarget); // Button that triggered the modal
+    var questionId = button.data('question-id'); // Extract question ID from data-* attributes
+    var questionText = button.data('question-text'); // Extract question text from data-* attributes
+    var genre = button.data('genre'); // Extract genre from data-* attributes
+    $('#answerModalLabel').text('Answer Question - ' + questionText); // Update modal title with the question text
+    $('#questionId').val(questionId); // Set the hidden input value for question ID in the modal form
+    $('#answerGenre').val(genre); // Set the hidden input value for genre in the modal form
+  });
+
+  // Handle form submission for answering a question
+  $('#answerForm').on('submit', function(event) {
+    event.preventDefault();
+    var formData = $(this).serialize();
+    var questionId = $('#questionId').val(); // Get the question ID
+
+    $.ajax({
+      url: '/submit-answer',
+      method: 'POST',
+      data: formData,
+      success: function(response) {
+        alert(response.message); // Show success message
+        $('#answerModal').modal('hide'); // Hide the modal after submission
+        updateURL($('#answerGenre').val()); // Update URL with the selected genre
+
+        // Update the corresponding question card with the new answer
+        var answersContainer = $('#answers-container-' + questionId);
+        var newAnswer = `<p class="card-text"><strong>${response.answer.username}:</strong> ${response.answer.answer}</p>`;
+        answersContainer.find('.no-answers-message').remove(); // Remove the "No answers yet" message if it exists
+        answersContainer.append(newAnswer); // Append the new answer
+      },
+      error: function(err) {
+        console.error('Error submitting answer:', err);
+        alert('Error submitting answer. Please try again.'); // Show error message
+      }
+    });
+  });
+
+  // Handle genre link click event to show the corresponding genre section
+  $(document).on('click', '.genre-link', function(event) {
+    event.preventDefault();
+    var genre = $(this).data('genre');
+    updateGenre(genre);
+    updateURL(genre);
+  });
+
+  // Handle modal show event to update genre in add question modal
+  $('#addQuestionModal').on('show.bs.modal', function(event) {
+    var button = $(event.relatedTarget);
+    var genre = button.data('genre');
+    $('#modalGenre').text(genre);
+    $('#questionGenre').val(genre);
+  });
+
+  // Handle form submission for adding a question
+  $('#addQuestionForm').on('submit', function(event) {
+    event.preventDefault();
+    var formData = $(this).serialize();
+    var genre = $('#questionGenre').val();
+
+    $.ajax({
+      url: '/add-question',
+      method: 'POST',
+      data: formData,
+      success: function(response) {
+        alert(response.message); // Show success message
+        $('#addQuestionModal').modal('hide'); // Hide the modal after submission
+        updateURL(genre); // Update URL with the selected genre
+        updateGenre(genre); // Refresh the questions for the selected genre
+      },
+      error: function(err) {
+        console.error('Error adding question:', err);
+        alert('Error adding question. Please try again.'); // Show error message
+      }
+    });
+  });
+
+  // Show the default genre section on page load
+  var defaultGenre = '<%= genres.length > 0 ? genres[0] : "" %>';
+  if (defaultGenre) {
+    updateGenre(defaultGenre);
+    updateURL(defaultGenre);
+  }
+});
+  </script>
+  
+    
+</body>
+</html>
